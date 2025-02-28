@@ -1,8 +1,10 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
-import { CreateAuthInput } from './dto/create-auth.input';
-import { UpdateAuthInput } from './dto/update-auth.input';
 import { User } from 'src/entities/user.entity';
+import { CreateUserInput } from '../users/dto/create-user.input';
+import { CreateAuthInput } from './dto/create-auth.input';
+import { AuthPayload } from 'src/utils/authpayload';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => User)
 export class AuthResolver {
@@ -13,4 +15,13 @@ export class AuthResolver {
     return 'Hello World!';
   }
 
+  @Mutation(() => User)
+  async register(@Args('createUser') createUser: CreateUserInput) {
+    return await this.authService.register(createUser);
+  }
+
+  @Mutation(() => AuthPayload)
+  async login(@Args('loginDto') loginDto: CreateAuthInput) {
+    return await this.authService.login(loginDto);
+  }
 }

@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthInput } from './dto/create-auth.input';
-import { UpdateAuthInput } from './dto/update-auth.input';
+import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcryptjs';
+import { CreateUserInput } from '../users/dto/create-user.input';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthInput: CreateAuthInput) {
-    return 'This action adds a new auth';
+  constructor(
+    private readonly userService: UsersService,
+    private jwtService: JwtService,
+    private readonly configureService: ConfigService,
+  ) {}
+
+  async register(createUser: CreateUserInput) {
+    const hashedPassword = await bcrypt.hash(createUser.password, 10);
+    return await this.userService.create({
+      ...createUser,
+      password: hashedPassword,
+    });
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthInput: UpdateAuthInput) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  async login(loginDto: CreateAuthInput) {
+    const user = await this.userService.findOneByUsername(loginDto.username);
+    if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    // console.log("User ", this.jwtService.sign({ id: user.id, role: user.role.id }));
+    return {
+      token: this.jwtService.sign({ id: user.id, role: user.role.id }),
+    };
   }
 }

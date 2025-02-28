@@ -2,34 +2,89 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Users {
+type Roles {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
   name: String!
+  users: [Users!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Users {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String
+  username: String!
+  password: String!
   email: String!
   gender: String!
   address: String!
   phone: String!
-  type: String!
+  type: Int!
+  role: Roles!
+}
+
+type AuthPayload {
+  token: String!
 }
 
 type Query {
-  users: [Users!]!
-  user(id: Int!): Users!
   sayHello: String!
+  findAllUser: [Users!]!
+  findUserById(id: Int!): Users!
+  findAllRole: [Roles!]!
+  findOne(id: Int!): Roles!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): Users!
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
+  createRole(createRoleInput: CreateRoleInput!): Roles!
+  register(createUser: CreateUserInput!): Users!
+  login(loginDto: CreateAuthInput!): AuthPayload!
 }
 
 input CreateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  name: String
+  username: String!
+  password: String!
+  email: String!
+  gender: String!
+  address: String!
+  phone: String!
+  type: Int!
+  roleId: Int!
 }
 
 input UpdateUserInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  name: String
+  username: String
+  password: String
+  email: String
+  gender: String
+  address: String
+  phone: String
+  type: Int
+  roleId: Int
   id: Int!
+}
+
+input CreateRoleInput {
+  name: String!
+}
+
+input CreateAuthInput {
+  username: String!
+  password: String!
 }

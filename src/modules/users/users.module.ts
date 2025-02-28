@@ -7,12 +7,14 @@ import { UsersService } from './users.service';
 import { Type } from 'class-transformer';
 import { User } from 'src/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RolesModule } from '../roles/roles.module';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-  ],
-  providers: [UsersResolver, UsersService],
+  imports: [TypeOrmModule.forFeature([User]), RolesModule, JwtModule],
+  providers: [UsersResolver, UsersService, AuthGuard],
   exports: [UsersService],
 })
 export class UsersModule {}

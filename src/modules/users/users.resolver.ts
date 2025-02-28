@@ -1,25 +1,36 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UsersService } from './users.service';
-import { User } from '../../entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { User } from 'src/entities/user.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
 
 @Resolver(() => User)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Mutation(() => User)
-  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.usersService.create(createUserInput);
+  // @UseGuards(AuthGuard, RoleGuard)
+  // @Roles('manager', 'customer')
+  async createUser(
+    @Args('createUserInput')
+    createUserInput: CreateUserInput,
+  ): Promise<User> {
+    const user = await this.usersService.create(createUserInput);
+    console.log(user);
+    return user;
   }
 
-  @Query(() => [User], { name: 'users' })
-  findAll() {
-    return this.usersService.findAll();
+  @Query(() => [User])
+  async findAllUser() {
+    return await this.usersService.findAll();
   }
 
-  @Query(() => User, { name: 'user' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  @Query(() => User)
+  findUserById(@Args('id', { type: () => Int }) id: number) {
     return this.usersService.findOne(id);
   }
 
