@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLFormattedError } from 'graphql';
 import { formatGraphQLError } from './common/interceptors/error.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { EmailService } from './common/services/email.service';
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     AuthModule,
     RolesModule,
   ],
-  providers: [AppResolver],
+  providers: [AppResolver, EmailService],
 })
 export class AppModule {}

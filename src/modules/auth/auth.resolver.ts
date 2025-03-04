@@ -24,4 +24,9 @@ export class AuthResolver {
   async login(@Args('loginDto') loginDto: CreateAuthInput) {
     return await this.authService.login(loginDto);
   }
+
+  @Mutation(() => AuthPayload)
+  async verifyLogin(@Args('token') token: string) {
+    return await this.authService.verifyLogin(token);
+  }
 }

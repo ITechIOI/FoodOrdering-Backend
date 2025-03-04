@@ -24,14 +24,17 @@ type Users {
   deletedAt: DateTime
   isActive: Boolean!
   name: String
-  username: String!
-  password: String!
-  email: String!
-  gender: String!
-  address: String!
-  phone: String!
-  type: Int!
+  username: String
+  password: String
+  email: String
+  gender: String
+  address: String
+  phone: String
+  type: Int
   role: Roles!
+  avatar: String
+  otpCode: String
+  otpExpiresAt: DateTime
 }
 
 type AuthPayload {
@@ -53,18 +56,22 @@ type Mutation {
   createRole(createRoleInput: CreateRoleInput!): Roles!
   register(createUser: CreateUserInput!): Users!
   login(loginDto: CreateAuthInput!): AuthPayload!
+  verifyLogin(token: String!): AuthPayload!
 }
 
 input CreateUserInput {
   name: String
-  username: String!
-  password: String!
-  email: String!
-  gender: String!
-  address: String!
-  phone: String!
-  type: Int!
+  username: String
+  password: String
+  email: String
+  gender: String
+  address: String
+  phone: String
+  type: Int
   roleId: Int!
+  avatar: String
+  otpCode: String
+  otpExpiresAt: DateTime
 }
 
 input UpdateUserInput {
@@ -77,6 +84,9 @@ input UpdateUserInput {
   phone: String
   type: Int
   roleId: Int
+  avatar: String
+  otpCode: String
+  otpExpiresAt: DateTime
   id: Int!
 }
 
