@@ -56,16 +56,51 @@ export class UsersService {
     });
   }
 
+  async findOneByOtp(otp: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: { otpCode: otp },
+      relations: ['role'],
+    });
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return await this.userRepository.findOne({
+      where: { email },
+      relations: ['role'],
+    });
+  }
+
+  async updateUser(id: number, updateUserInput: UpdateUserInput) {
+    // console.log(updateUserInput);
+    try {
+      const user = await this.findOneById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      // console.log('User:', user);
+      // const role = updateUserInput.roleId
+      //   ? await this.roleService.findOne(updateUserInput.roleId)
+      //   : undefined;
+
+      // if (!role) {
+      //   throw new NotFoundException('Role not found');
+      // }
+      const updatedUser = await this.userRepository.save({
+        ...user,
+        ...updateUserInput,
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async findAll() {
     return await this.userRepository.find();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserInput: UpdateUserInput) {
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {
