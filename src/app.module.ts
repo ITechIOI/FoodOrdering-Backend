@@ -14,7 +14,9 @@ import { GraphQLFormattedError } from 'graphql';
 import { formatGraphQLError } from './common/interceptors/error.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { EmailService } from './common/services/email.service';
-
+import { NotificationModule } from './modules/notification/notification.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import GraphQLUpload from 'graphql-upload';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -31,6 +33,12 @@ import { EmailService } from './common/services/email.service';
       //     data: null,
       //   };
       // },
+      csrfPrevention: false,
+      buildSchemaOptions: {
+        numberScalarMode: 'integer',
+      },
+      installSubscriptionHandlers: true,
+
       formatError: formatGraphQLError,
     }),
 
@@ -38,6 +46,8 @@ import { EmailService } from './common/services/email.service';
     UsersModule,
     AuthModule,
     RolesModule,
+    NotificationModule,
+    CloudinaryModule,
   ],
   providers: [AppResolver, EmailService],
 })
