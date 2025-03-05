@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class CloudinaryService {
   async uploadImage(
-    stream: ReadStream, // ✅ Nhận ReadStream, không phải FileUpload
+    stream: ReadStream, 
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -24,7 +24,7 @@ export class CloudinaryService {
         },
       );
 
-      stream.pipe(uploadStream); // ✅ Chuyển dữ liệu stream vào Cloudinary
+      stream.pipe(uploadStream); 
     });
   }
 
