@@ -41,22 +41,33 @@ type AuthPayload {
   token: String!
 }
 
+type Notification {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 type Query {
   sayHello: String!
   findAllUser: [Users!]!
   findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
+  notification(id: Int!): Notification!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): Users!
+  uploadAvatar(id: Int!, file: Upload!): String!
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
   register(createUser: CreateUserInput!): Users!
   login(loginDto: CreateAuthInput!): AuthPayload!
   verifyLogin(token: String!): AuthPayload!
+  createNotification(createNotificationInput: CreateNotificationInput!): Notification!
+  updateNotification(updateNotificationInput: UpdateNotificationInput!): Notification!
+  removeNotification(id: Int!): Notification!
+  sendNotification: String!
 }
 
 input CreateUserInput {
@@ -73,6 +84,9 @@ input CreateUserInput {
   otpCode: String
   otpExpiresAt: DateTime
 }
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
 
 input UpdateUserInput {
   name: String
@@ -97,4 +111,19 @@ input CreateRoleInput {
 input CreateAuthInput {
   username: String!
   password: String!
+}
+
+input CreateNotificationInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateNotificationInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+type Subscription {
+  otpSent: String!
 }
