@@ -11,10 +11,17 @@ import { RolesModule } from '../roles/roles.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { AuthModule } from '../auth/auth.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), RolesModule, JwtModule],
-  providers: [UsersResolver, UsersService, AuthGuard],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    RolesModule,
+    JwtModule,
+    CloudinaryModule,
+  ],
+  providers: [UsersResolver, UsersService, AuthGuard, CloudinaryService],
   exports: [UsersService],
 })
 export class UsersModule {}

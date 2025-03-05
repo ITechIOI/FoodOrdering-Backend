@@ -7,6 +7,17 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Roles } from 'src/common/decorators/role.decorator';
+import { GraphQLScalarType } from 'graphql';
+import {
+  FileUpload,
+  GraphQLUpload as GraphQLUploadScalar,
+  Upload,
+} from 'graphql-upload-minimal';
+
+const GraphQLUpload = new GraphQLScalarType({
+  name: 'Upload',
+  description: 'The `Upload` scalar type represents a file upload.',
+});
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -22,6 +33,18 @@ export class UsersResolver {
     const user = await this.usersService.create(createUserInput);
     console.log(user);
     return user;
+  }
+
+  @Mutation(() => String)
+  async uploadAvatar(
+    @Args('id', { type: () => Int }) id: number,
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: Upload,
+  ): Promise<User> {
+    console.log('File in resolver:', file);
+
+    const resolvedFile = await file.promise;
+    console.log('Resolved file:', resolvedFile);
+    return this.usersService.updateAvatar(id, resolvedFile);
   }
 
   @Query(() => [User])
