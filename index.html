@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bản đồ Goong</title>
+    <script src="https://cdn.jsdelivr.net/npm/@goongmaps/goong-js@1.0.9/dist/goong-js.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/@goongmaps/goong-js@1.0.9/dist/goong-js.css"
+      rel="stylesheet"
+    />
+    <style>
+      #map {
+        width: 100%;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bản đồ Goong</h1>
+    <div id="map"></div>
+    <script>
+      goongjs.accessToken = 'your maptiles key here';
+      var map = new goongjs.Map({
+        container: 'map',
+        style: 'https://tiles.goong.io/assets/goong_map_web.json', // stylesheet location
+        center: [105.83991, 21.028], // starting position [lng, lat]
+        zoom: 9, // starting zoom
+      });
+    </script>
+  </body>
+</html>

@@ -16,7 +16,18 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { EmailService } from './common/services/email.service';
 import { NotificationModule } from './modules/notification/notification.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
-import GraphQLUpload from 'graphql-upload';
+import { MapModule } from './modules/map/map.module';
+import { Address } from './entities/address.entity';
+import { CategoryModule } from './modules/category/category.module';
+import { AddressModule } from './modules/address/address.module';
+import { DiscountModule } from './modules/discount/discount.module';
+import { MenuModule } from './modules/menu/menu.module';
+import { OrderModule } from './modules/order/order.module';
+import { OrderDetailsModule } from './modules/order_details/order_details.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { RestaurantModule } from './modules/restaurant/restaurant.module';
+import { RevenueReportModule } from './modules/revenue_report/revenue_report.module';
+import { ReviewModule } from './modules/review/review.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -48,6 +59,17 @@ import GraphQLUpload from 'graphql-upload';
     RolesModule,
     NotificationModule,
     CloudinaryModule,
+    MapModule,
+    AddressModule,
+    CategoryModule,
+    DiscountModule,
+    MenuModule,
+    OrderModule,
+    OrderDetailsModule,
+    PaymentModule,
+    RestaurantModule,
+    RevenueReportModule,
+    ReviewModule,
   ],
   providers: [AppResolver, EmailService],
 })
