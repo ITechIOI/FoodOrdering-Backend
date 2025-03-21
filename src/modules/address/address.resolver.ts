@@ -3,29 +3,43 @@ import { AddressService } from './address.service';
 import { Address } from '../../entities/address.entity';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
+import { createPaginatedType } from 'src/utils/paginated';
+
+const PaginatedAddress = createPaginatedType(Address, 'PaginatedAddress');
 
 @Resolver(() => Address)
 export class AddressResolver {
   constructor(private readonly addressService: AddressService) {}
 
   @Mutation(() => Address)
-  createAddress(@Args('createAddressInput') createAddressInput: CreateAddressInput) {
-    return this.addressService.create(createAddressInput);
+  async createAddress(
+    @Args('createAddressInput') createAddressInput: CreateAddressInput,
+  ): Promise<Address> {
+    return this.addressService.createAddress(createAddressInput);
   }
 
-  @Query(() => [Address], { name: 'address' })
-  findAll() {
-    return this.addressService.findAll();
+  @Query(() => PaginatedAddress)
+  async findAllAddresses(
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit: number,
+  ) {
+    return this.addressService.findAllAddress(page, limit);
   }
 
-  @Query(() => Address, { name: 'address' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.addressService.findOne(id);
+  // thuộc tính name trong @Query() sẽ là tên của query trong GraphQL
+  @Query(() => String, { name: 'findOneAddress' })
+  async findOne(@Args('id', { type: () => Int }) id: number) {
+    return this.addressService.findOneAddress(id);
   }
 
-  @Mutation(() => Address)
-  updateAddress(@Args('updateAddressInput') updateAddressInput: UpdateAddressInput) {
-    return this.addressService.update(updateAddressInput.id, updateAddressInput);
+  @Mutation(() => Address, { name: 'updateAddress' })
+  async updateAddress(
+    @Args('updateAddressInput') updateAddressInput: UpdateAddressInput,
+  ) {
+    return this.addressService.update(
+      updateAddressInput.id,
+      updateAddressInput,
+    );
   }
 
   @Mutation(() => Address)

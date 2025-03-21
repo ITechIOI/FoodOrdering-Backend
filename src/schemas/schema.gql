@@ -17,6 +17,178 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type RevenueReport {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  month: Int
+  year: Int
+  totalOrders: Int
+  totalRevenue: Int
+  cancalledOrders: Int
+  averageRating: Int
+  restaurant: Restaurant
+}
+
+type OrderDetail {
+  id: Int!
+  quantity: Int
+  note: String
+  menu: Menu
+  user: Users
+}
+
+type Menu {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String
+  description: String
+  price: Int
+  imageUrl: String
+  available: String
+  category: Category
+  orderDetail: [OrderDetail!]
+}
+
+type Category {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String!
+  restaurant: Restaurant
+  menu: [Menu!]
+}
+
+type Restaurant {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String
+  description: String
+  phone: String
+  openTime: String
+  closeTime: String
+  rating: Int
+  status: String
+  address: Address
+  revenueReport: [RevenueReport!]
+  categories: [Category!]
+  order: [Order!]
+  owner: Users
+}
+
+type Address {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  label: String
+  formattedAddress: String
+  latitude: Int
+  longitude: Int
+  googleId: String
+  restaurant: [Restaurant!]
+  order: [Order!]
+  user: [Users!]
+}
+
+type Discount {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  code: String
+  description: String
+  percentage: Int
+  minOrderValue: Int
+  count: Int
+  startTime: DateTime
+  endTime: DateTime
+  status: String
+  order: [Order!]
+}
+
+type Payment {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  transactionId: String
+  paymentMethod: String
+  status: String
+  order: Order
+}
+
+type Complaint {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  content: String
+  imageUrl: String
+  response: String
+  seller: Users
+  admin: Users
+  review: Review
+}
+
+type Review {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  rating: Int
+  content: String
+  imageUrl: String
+  isNegative: String
+  order: Order
+  complaint: [Complaint!]
+}
+
+type Notification {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  content: String
+  type: String
+  isRead: String
+  receiver: Users
+  order: Order
+}
+
+type Order {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  totalPrice: Int
+  status: String
+  user: Users
+  address: Address
+  restaurant: Restaurant
+  discount: Discount
+  payment: [Payment!]
+  review: [Review!]
+  notification: [Notification!]
+}
+
 type Users {
   id: Int!
   createdAt: DateTime!
@@ -28,31 +200,59 @@ type Users {
   password: String
   email: String
   gender: String
-  address: String
   phone: String
   type: Int
   role: Roles!
   avatar: String
   otpCode: String
   otpExpiresAt: DateTime
+  order: [Order!]
+  sellerComplaint: [Complaint!]
+  adminComplaint: [Complaint!]
+  notification: [Notification!]
+  orderDetail: [OrderDetail!]
+  restaurants: [Restaurant!]
+  address: Address
+}
+
+type PaginatedUser {
+  total: Int!
+  data: [Users!]!
 }
 
 type AuthPayload {
   token: String!
 }
 
-type Notification {
+type Map {
   """Example field (placeholder)"""
   exampleField: Int!
 }
 
+type PaginatedAddress {
+  total: Int!
+  data: [Address!]!
+}
+
 type Query {
   sayHello: String!
-  findAllUser: [Users!]!
-  findUserById(id: Int!): Users!
+  findAllUsers(page: Int, limit: Int): PaginatedUser!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
   notification(id: Int!): Notification!
+  map(id: Int!): Map!
+  findAllAddresses(page: Int, limit: Int): PaginatedAddress!
+  findOneAddress(id: Int!): String!
+  category(id: Int!): Category!
+  discount(id: Int!): Discount!
+  menu(id: Int!): Menu!
+  order(id: Int!): Order!
+  orderDetails: [OrderDetail!]!
+  orderDetail(id: Int!): OrderDetail!
+  payment(id: Int!): Payment!
+  restaurant(id: Int!): Restaurant!
+  revenueReport(id: Int!): RevenueReport!
+  review(id: Int!): Review!
 }
 
 type Mutation {
@@ -68,6 +268,39 @@ type Mutation {
   updateNotification(updateNotificationInput: UpdateNotificationInput!): Notification!
   removeNotification(id: Int!): Notification!
   sendNotification: String!
+  createMap(createMapInput: CreateMapInput!): Map!
+  updateMap(updateMapInput: UpdateMapInput!): Map!
+  removeMap(id: Int!): Map!
+  createAddress(createAddressInput: CreateAddressInput!): Address!
+  updateAddress(updateAddressInput: UpdateAddressInput!): Address!
+  removeAddress(id: Int!): Address!
+  createCategory(createCategoryInput: CreateCategoryInput!): Category!
+  updateCategory(updateCategoryInput: UpdateCategoryInput!): Category!
+  removeCategory(id: Int!): Category!
+  createDiscount(createDiscountInput: CreateDiscountInput!): Discount!
+  updateDiscount(updateDiscountInput: UpdateDiscountInput!): Discount!
+  removeDiscount(id: Int!): Discount!
+  createMenu(createMenuInput: CreateMenuInput!): Menu!
+  updateMenu(updateMenuInput: UpdateMenuInput!): Menu!
+  removeMenu(id: Int!): Menu!
+  createOrder(createOrderInput: CreateOrderInput!): Order!
+  updateOrder(updateOrderInput: UpdateOrderInput!): Order!
+  removeOrder(id: Int!): Order!
+  createOrderDetail(createOrderDetailInput: CreateOrderDetailInput!): OrderDetail!
+  updateOrderDetail(updateOrderDetailInput: UpdateOrderDetailInput!): OrderDetail!
+  removeOrderDetail(id: Int!): OrderDetail!
+  createPayment(createPaymentInput: CreatePaymentInput!): Payment!
+  updatePayment(updatePaymentInput: UpdatePaymentInput!): Payment!
+  removePayment(id: Int!): Payment!
+  createRestaurant(createRestaurantInput: CreateRestaurantInput!): Restaurant!
+  updateRestaurant(updateRestaurantInput: UpdateRestaurantInput!): Restaurant!
+  removeRestaurant(id: Int!): Restaurant!
+  createRevenueReport(createRevenueReportInput: CreateRevenueReportInput!): RevenueReport!
+  updateRevenueReport(updateRevenueReportInput: UpdateRevenueReportInput!): RevenueReport!
+  removeRevenueReport(id: Int!): RevenueReport!
+  createReview(createReviewInput: CreateReviewInput!): Review!
+  updateReview(updateReviewInput: UpdateReviewInput!): Review!
+  removeReview(id: Int!): Review!
 }
 
 input CreateUserInput {
@@ -76,7 +309,7 @@ input CreateUserInput {
   password: String
   email: String
   gender: String
-  address: String
+  addressId: Int
   phone: String
   type: Int
   roleId: Int!
@@ -94,7 +327,7 @@ input UpdateUserInput {
   password: String
   email: String
   gender: String
-  address: String
+  addressId: Int
   phone: String
   type: Int
   roleId: Int
@@ -119,6 +352,133 @@ input CreateNotificationInput {
 }
 
 input UpdateNotificationInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateMapInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateMapInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateAddressInput {
+  label: String
+  formatAdress: String
+  latitude: Int!
+  longitude: Int!
+  googleId: String
+}
+
+input UpdateAddressInput {
+  label: String
+  formatAdress: String
+  latitude: Int
+  longitude: Int
+  googleId: String
+  id: Int!
+}
+
+input CreateCategoryInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateCategoryInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateDiscountInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateDiscountInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateMenuInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateMenuInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateOrderInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateOrderDetailInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateOrderDetailInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreatePaymentInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdatePaymentInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateRestaurantInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateRestaurantInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateRevenueReportInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateRevenueReportInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateReviewInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateReviewInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!

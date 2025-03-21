@@ -74,7 +74,6 @@ export class UsersService {
   }
 
   async updateUser(id: number, updateUserInput: UpdateUserInput) {
-    // console.log(updateUserInput);
     try {
       const user = await this.findOneById(id);
       if (!user) {
@@ -158,15 +157,23 @@ export class UsersService {
     }
   }
 
-  async findAll() {
-    return await this.userRepository.find();
+  async remove(id: number) {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.deletedAt = new Date();
+    return await this.userRepository.save(user);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async findAllUser(
+    page = 1,
+    limit = 10,
+  ): Promise<{ total: number; data: User[] }> {
+    const [data, total] = await this.userRepository.findAndCount({
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+    return { total, data };
   }
 }

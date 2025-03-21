@@ -13,6 +13,9 @@ import {
   GraphQLUpload as GraphQLUploadScalar,
   Upload,
 } from 'graphql-upload-minimal';
+import { createPaginatedType } from 'src/utils/paginated';
+
+const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
 const GraphQLUpload = new GraphQLScalarType({
   name: 'Upload',
@@ -47,15 +50,15 @@ export class UsersResolver {
     return this.usersService.updateAvatar(id, resolvedFile);
   }
 
-  @Query(() => [User])
-  async findAllUser() {
-    return await this.usersService.findAll();
-  }
+  // @Query(() => [User])
+  // async findAllUser() {
+  //   return await this.usersService.findAll();
+  // }
 
-  @Query(() => User)
-  findUserById(@Args('id', { type: () => Int }) id: number) {
-    return this.usersService.findOne(id);
-  }
+  // @Query(() => User)
+  // findUserById(@Args('id', { type: () => Int }) id: number) {
+  //   return this.usersService.findOne(id);
+  // }
 
   @Mutation(() => User)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
@@ -66,5 +69,13 @@ export class UsersResolver {
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => Int }) id: number) {
     return this.usersService.remove(id);
+  }
+
+  @Query(() => PaginatedUser)
+  async findAllUsers(
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit: number,
+  ) {
+    return this.usersService.findAllUser(page, limit);
   }
 }

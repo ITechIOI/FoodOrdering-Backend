@@ -1,8 +1,13 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
 import { Role } from './role.entity';
-
+import { Order } from './order.entity';
+import { Complaint } from './complaint.entity';
+import { Notification } from './notification.entity';
+import { OrderDetail } from './order_detail.entity';
+import { Restaurant } from './restaurant.entity';
+import { Address } from './address.entity';
 @Entity({ name: 'users' })
 @ObjectType('Users')
 export class User extends AbstractEntity<User> {
@@ -28,10 +33,6 @@ export class User extends AbstractEntity<User> {
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
-  address: string;
-
-  @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
   phone: string;
 
   @Field(() => Int, { nullable: true })
@@ -53,4 +54,32 @@ export class User extends AbstractEntity<User> {
   @Field(() => Date, { nullable: true })
   @Column({ nullable: true })
   otpExpiresAt: Date;
+
+  @Field(() => [Order], { nullable: true })
+  @ManyToOne(() => Order, (order) => order.user)
+  order: Order[];
+
+  @Field(() => [Complaint], { nullable: true })
+  @OneToMany(() => Complaint, (complaint) => complaint.seller)
+  sellerComplaint: Complaint[];
+
+  @Field(() => [Complaint], { nullable: true })
+  @OneToMany(() => Complaint, (complaint) => complaint.admin)
+  adminComplaint: Complaint[];
+
+  @Field(() => [Notification], { nullable: true })
+  @OneToMany(() => Notification, (notification) => notification.receiver)
+  notification: Notification[];
+
+  @Field(() => [OrderDetail], { nullable: true })
+  @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.user)
+  orderDetail: OrderDetail[];
+
+  @Field(() => [Restaurant], { nullable: true })
+  @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
+  restaurants: Restaurant[];
+
+  @Field(() => Address, { nullable: true })
+  @ManyToOne(() => Address, (address) => address.user)
+  address: Address;
 }
