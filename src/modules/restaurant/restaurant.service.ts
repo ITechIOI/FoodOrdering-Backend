@@ -1,26 +1,91 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Restaurant } from '../../entities/restaurant.entity';
 import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
+import { Address } from '../../entities/address.entity';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class RestaurantService {
-  create(createRestaurantInput: CreateRestaurantInput) {
-    return 'This action adds a new restaurant';
+  constructor(
+    @InjectRepository(Restaurant)
+    private restaurantRepository: Repository<Restaurant>,
+
+    @InjectRepository(Address)
+    private addressRepository: Repository<Address>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+
+  async create(
+    createRestaurantInput: CreateRestaurantInput,
+  ): Promise<Restaurant> {
+    const { addressId, ownerId, ...data } = createRestaurantInput;
+
+    // Kiểm tra xem address có tồn tại không
+    const address = await this.addressRepository.findOne({
+      where: { id: addressId },
+    });
+    if (!address)
+      throw new NotFoundException(`Address with ID ${addressId} not found`);
+
+    // Kiểm tra xem user (owner) có tồn tại không
+    const owner = await this.userRepository.findOne({ where: { id: ownerId } });
+    if (!owner)
+      throw new NotFoundException(`Owner with ID ${ownerId} not found`);
+
+    // Tạo nhà hàng mới
+    const newRestaurant = this.restaurantRepository.create({
+      ...data,
+      address,
+      owner,
+    });
+
+    return await this.restaurantRepository.save(newRestaurant);
   }
 
-  findAll() {
-    return `This action returns all restaurant`;
+  async findAll(): Promise<Restaurant[]> {
+    return await this.restaurantRepository.find({
+      relations: ['address', 'owner'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} restaurant`;
+  async findOne(id: number): Promise<Restaurant> {
+    const restaurant = await this.restaurantRepository.findOne({
+      where: { id },
+      relations: ['address', 'owner'],
+    });
+
+    if (!restaurant)
+      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+    return restaurant;
   }
 
-  update(id: number, updateRestaurantInput: UpdateRestaurantInput) {
-    return `This action updates a #${id} restaurant`;
+  async update(
+    id: number,
+    updateRestaurantInput: UpdateRestaurantInput,
+  ): Promise<Restaurant> {
+    const restaurant = await this.restaurantRepository.findOne({
+      where: { id },
+    });
+    if (!restaurant)
+      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+
+    Object.assign(restaurant, updateRestaurantInput);
+    return await this.restaurantRepository.save(restaurant);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} restaurant`;
+  async remove(id: number): Promise<Restaurant> {
+    const restaurant = await this.restaurantRepository.findOne({
+      where: { id },
+    });
+    if (!restaurant)
+      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+
+    await this.restaurantRepository.remove(restaurant);
+    return restaurant;
   }
 }

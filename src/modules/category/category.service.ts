@@ -1,26 +1,86 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryInput } from './dto/create-category.input';
 import { UpdateCategoryInput } from './dto/update-category.input';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from 'src/entities/category.entity';
+import { Repository } from 'typeorm';
+import { Restaurant } from 'src/entities/restaurant.entity';
 
 @Injectable()
 export class CategoryService {
-  create(createCategoryInput: CreateCategoryInput) {
-    return 'This action adds a new category';
+  constructor(
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Restaurant)
+    private readonly restaurantRepository: Repository<Restaurant>,
+  ) {}
+
+  async create(createCategoryInput: CreateCategoryInput): Promise<Category> {
+    const { name, restaurantId } = createCategoryInput;
+
+    let restaurant: Restaurant | null = null;
+    if (restaurantId) {
+      restaurant = await this.restaurantRepository.findOne({
+        where: { id: restaurantId },
+      });
+      if (!restaurant) {
+        throw new NotFoundException(
+          `Restaurant with ID ${restaurantId} not found`,
+        );
+      }
+    }
+
+    const category = this.categoryRepository.create({
+      name,
+      restaurant: restaurant ?? undefined, // Chuyển `null` thành `undefined` nếu cần
+    });
+
+    return this.categoryRepository.save(category);
   }
 
-  findAll() {
-    return `This action returns all category`;
+  async findAll(): Promise<Category[]> {
+    return this.categoryRepository.find({ relations: ['restaurant', 'menu'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['restaurant', 'menu'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+    return category;
   }
 
-  update(id: number, updateCategoryInput: UpdateCategoryInput) {
-    return `This action updates a #${id} category`;
+  async update(
+    id: number,
+    updateCategoryInput: UpdateCategoryInput,
+  ): Promise<Category> {
+    const category = await this.findOne(id);
+
+    if (updateCategoryInput.name) {
+      category.name = updateCategoryInput.name;
+    }
+
+    if (updateCategoryInput.restaurantId) {
+      const restaurant = await this.restaurantRepository.findOne({
+        where: { id: updateCategoryInput.restaurantId },
+      });
+      if (!restaurant) {
+        throw new NotFoundException(
+          `Restaurant with ID ${updateCategoryInput.restaurantId} not found`,
+        );
+      }
+      category.restaurant = restaurant;
+    }
+
+    return this.categoryRepository.save(category);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number): Promise<Category> {
+    const category = await this.findOne(id);
+    await this.categoryRepository.remove(category);
+    return category;
   }
 }
