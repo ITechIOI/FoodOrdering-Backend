@@ -9,27 +9,31 @@ export class MenuResolver {
   constructor(private readonly menuService: MenuService) {}
 
   @Mutation(() => Menu)
-  createMenu(@Args('createMenuInput') createMenuInput: CreateMenuInput) {
-    return this.menuService.create(createMenuInput);
+  async createMenu(
+    @Args('createMenuInput') createMenuInput: CreateMenuInput,
+  ): Promise<Menu> {
+    return await this.menuService.create(createMenuInput);
   }
 
-  @Query(() => [Menu], { name: 'menu' })
-  findAll() {
-    return this.menuService.findAll();
+  @Query(() => [Menu], { name: 'menus' }) // ✅ Đổi name để tránh trùng với query findOne
+  async findAll(): Promise<Menu[]> {
+    return await this.menuService.findAll();
   }
 
   @Query(() => Menu, { name: 'menu' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.menuService.findOne(id);
+  async findOne(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
+    return await this.menuService.findOne(id);
   }
 
   @Mutation(() => Menu)
-  updateMenu(@Args('updateMenuInput') updateMenuInput: UpdateMenuInput) {
-    return this.menuService.update(updateMenuInput.id, updateMenuInput);
+  async updateMenu(
+    @Args('updateMenuInput') updateMenuInput: UpdateMenuInput,
+  ): Promise<Menu> {
+    return await this.menuService.update(updateMenuInput.id, updateMenuInput);
   }
 
-  @Mutation(() => Menu)
-  removeMenu(@Args('id', { type: () => Int }) id: number) {
-    return this.menuService.remove(id);
+  @Mutation(() => Menu) // ✅ Trả về Menu thay vì Boolean
+  async removeMenu(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
+    return await this.menuService.remove(id);
   }
 }
