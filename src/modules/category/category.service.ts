@@ -3,7 +3,8 @@ import { CreateCategoryInput } from './dto/create-category.input';
 import { UpdateCategoryInput } from './dto/update-category.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { RestaurantService } from '../restaurant/restaurant.service';
 import { Restaurant } from 'src/entities/restaurant.entity';
 
 @Injectable()
@@ -11,18 +12,16 @@ export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
-    @InjectRepository(Restaurant)
-    private readonly restaurantRepository: Repository<Restaurant>,
+    private readonly restaurantService: RestaurantService,
   ) {}
 
   async create(createCategoryInput: CreateCategoryInput): Promise<Category> {
     const { name, restaurantId } = createCategoryInput;
 
-    let restaurant: Restaurant | null = null;
+    let restaurant: Restaurant | undefined = undefined;
+
     if (restaurantId) {
-      restaurant = await this.restaurantRepository.findOne({
-        where: { id: restaurantId },
-      });
+      restaurant = await this.restaurantService.findOne(restaurantId);
       if (!restaurant) {
         throw new NotFoundException(
           `Restaurant with ID ${restaurantId} not found`,
@@ -32,7 +31,7 @@ export class CategoryService {
 
     const category = this.categoryRepository.create({
       name,
-      restaurant: restaurant ?? undefined, // Chuyển `null` thành `undefined` nếu cần
+      restaurant: restaurant ?? undefined,
     });
 
     return this.categoryRepository.save(category);
@@ -44,7 +43,7 @@ export class CategoryService {
 
   async findOne(id: number): Promise<Category> {
     const category = await this.categoryRepository.findOne({
-      where: { id },
+      where: { id, deletedAt: IsNull() },
       relations: ['restaurant', 'menu'],
     });
     if (!category) {
@@ -64,9 +63,9 @@ export class CategoryService {
     }
 
     if (updateCategoryInput.restaurantId) {
-      const restaurant = await this.restaurantRepository.findOne({
-        where: { id: updateCategoryInput.restaurantId },
-      });
+      const restaurant = await this.restaurantService.findOne(
+        updateCategoryInput.restaurantId,
+      );
       if (!restaurant) {
         throw new NotFoundException(
           `Restaurant with ID ${updateCategoryInput.restaurantId} not found`,
@@ -80,7 +79,8 @@ export class CategoryService {
 
   async remove(id: number): Promise<Category> {
     const category = await this.findOne(id);
-    await this.categoryRepository.remove(category);
+    category.deletedAt = new Date();
+    await this.categoryRepository.save(category);
     return category;
   }
 }
