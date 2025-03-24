@@ -8,9 +8,23 @@ import { UpdatePaymentInput } from './dto/update-payment.input';
 export class PaymentResolver {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Mutation(() => Payment)
-  createPayment(@Args('createPaymentInput') createPaymentInput: CreatePaymentInput) {
-    return this.paymentService.create(createPaymentInput);
+  @Mutation(() => String)
+  async createPaypalOrder(
+    @Args('createPaymentInput') createPaymentInput: CreatePaymentInput,
+  ): Promise<string> {
+    const order = await this.paymentService.createPayment(createPaymentInput);
+
+    const approvalUrl = order.links.find(
+      (link) => link.rel === 'approve',
+    )?.href;
+
+    return approvalUrl; // Gửi URL này về frontend để redirect
+  }
+
+  @Mutation(() => Boolean)
+  async capturePaypalOrder(@Args('orderId') orderId: string): Promise<boolean> {
+    const result = await this.paymentService.captureOrder(orderId);
+    return result.status === 'COMPLETED';
   }
 
   @Query(() => [Payment], { name: 'payment' })
@@ -24,8 +38,13 @@ export class PaymentResolver {
   }
 
   @Mutation(() => Payment)
-  updatePayment(@Args('updatePaymentInput') updatePaymentInput: UpdatePaymentInput) {
-    return this.paymentService.update(updatePaymentInput.id, updatePaymentInput);
+  updatePayment(
+    @Args('updatePaymentInput') updatePaymentInput: UpdatePaymentInput,
+  ) {
+    return this.paymentService.update(
+      updatePaymentInput.id,
+      updatePaymentInput,
+    );
   }
 
   @Mutation(() => Payment)

@@ -3,10 +3,6 @@ import { UsersService } from './users.service';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { User } from 'src/entities/user.entity';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
 import { GraphQLScalarType } from 'graphql';
 import {
   FileUpload,
@@ -14,6 +10,7 @@ import {
   Upload,
 } from 'graphql-upload-minimal';
 import { createPaginatedType } from 'src/utils/paginated';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
@@ -72,10 +69,14 @@ export class UsersResolver {
   }
 
   @Query(() => PaginatedUser)
+  // @UseInterceptors(CacheInterceptor)
+  // @CacheKey('user:all')
+  // @CacheTTL(300)
   async findAllUsers(
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
   ) {
+    console.log('Querying all users');
     return this.usersService.findAllUser(page, limit);
   }
 }

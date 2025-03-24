@@ -16,6 +16,10 @@ export class Order extends AbstractEntity<Order> {
   @Column({ nullable: true, default: 0 })
   totalPrice: number;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, default: 0 })
+  shippingFee: number;
+
   // Values in ['pending', 'completed', 'cancelled']
   @Field(() => String, { nullable: true })
   @Column({

@@ -1,35 +1,55 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+// src/modules/goong/goong.resolver.ts
+import { Resolver, Query, Args } from '@nestjs/graphql';
 import { MapService } from './map.service';
-import { Map } from './entities/map.entity';
-import { CreateMapInput } from './dto/create-map.input';
-import { UpdateMapInput } from './dto/update-map.input';
+import { ObjectType, Field } from '@nestjs/graphql';
 
-@Resolver(() => Map)
+@ObjectType()
+class MapPrediction {
+  @Field() description: string;
+  @Field() place_id: string;
+}
+
+@ObjectType()
+class GoongAutoCompleteResult {
+  @Field(() => [MapPrediction]) predictions: MapPrediction[];
+}
+
+@ObjectType()
+class GoongGeocodeResult {
+  @Field() formatted_address: string;
+  @Field() place_id: string;
+}
+
+@ObjectType()
+class GoongDirectionResult {
+  @Field() summary: string;
+  @Field() distance: string;
+  @Field() duration: string;
+}
+
+@Resolver()
 export class MapResolver {
-  constructor(private readonly mapService: MapService) {}
+  constructor(private readonly goongService: MapService) {}
 
-  @Mutation(() => Map)
-  createMap(@Args('createMapInput') createMapInput: CreateMapInput) {
-    return this.mapService.create(createMapInput);
+  @Query(() => GoongAutoCompleteResult)
+  async searchPlace(@Args('input') input: string) {
+    return this.goongService.searchPlace(input);
   }
 
-  @Query(() => [Map], { name: 'map' })
-  findAll() {
-    return this.mapService.findAll();
+  @Query(() => [GoongGeocodeResult])
+  async reverseGeocode(@Args('lat') lat: number, @Args('lng') lng: number) {
+    const res = await this.goongService.reverseGeocode(lat, lng);
+    return res.results;
   }
 
-  @Query(() => Map, { name: 'map' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.mapService.findOne(id);
-  }
-
-  @Mutation(() => Map)
-  updateMap(@Args('updateMapInput') updateMapInput: UpdateMapInput) {
-    return this.mapService.update(updateMapInput.id, updateMapInput);
-  }
-
-  @Mutation(() => Map)
-  removeMap(@Args('id', { type: () => Int }) id: number) {
-    return this.mapService.remove(id);
+  @Query(() => GoongDirectionResult)
+  async direction(@Args('from') from: string, @Args('to') to: string) {
+    const res = await this.goongService.direction(from, to);
+    const route = res.routes[0];
+    return {
+      summary: route.summary,
+      distance: route.legs[0].distance.text,
+      duration: route.legs[0].duration.text,
+    };
   }
 }

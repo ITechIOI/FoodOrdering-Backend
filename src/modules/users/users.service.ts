@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,6 +14,8 @@ import { Role } from 'src/entities/role.entity';
 import { RolesService } from '../roles/roles.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileUpload } from 'graphql-upload-minimal';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +24,8 @@ export class UsersService {
     private userRepository: Repository<User>,
     private roleService: RolesService,
     private cloudinaryService: CloudinaryService,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
   ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
@@ -170,10 +175,27 @@ export class UsersService {
     page = 1,
     limit = 10,
   ): Promise<{ total: number; data: User[] }> {
+    const cacheKey = `user:all:page=${page}:limit=${limit}`;
+
+    const cached = await this.cacheManager.get<{ total: number; data: User[] }>(
+      cacheKey,
+    );
+
+    if (cached) {
+      console.log('[CACHE] HIT:', cacheKey);
+      return cached;
+    }
+
+    console.log('[CACHE] MISS:', cacheKey);
     const [data, total] = await this.userRepository.findAndCount({
       take: limit,
       skip: (page - 1) * limit,
     });
-    return { total, data };
+
+    const result = { total, data };
+
+    await this.cacheManager.set(cacheKey, result, 300); // ✅ Đặt TTL 5 phút
+
+    return result;
   }
 }

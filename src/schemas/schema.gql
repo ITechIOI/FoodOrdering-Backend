@@ -243,13 +243,16 @@ type Query {
   map(id: Int!): Map!
   findAllAddresses(page: Int, limit: Int): PaginatedAddress!
   findOneAddress(id: Int!): String!
+  categories: [Category!]!
   category(id: Int!): Category!
   discount(id: Int!): Discount!
+  menus: [Menu!]!
   menu(id: Int!): Menu!
   order(id: Int!): Order!
   orderDetails: [OrderDetail!]!
   orderDetail(id: Int!): OrderDetail!
   payment(id: Int!): Payment!
+  restaurants: [Restaurant!]!
   restaurant(id: Int!): Restaurant!
   revenueReport(id: Int!): RevenueReport!
   review(id: Int!): Review!
@@ -386,13 +389,21 @@ input UpdateAddressInput {
 }
 
 input CreateCategoryInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  """Tên danh mục"""
+  name: String!
+
+  """ID nhà hàng"""
+  restaurantId: Int
 }
 
 input UpdateCategoryInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  """Tên danh mục"""
+  name: String
+
+  """ID nhà hàng"""
+  restaurantId: Int
+
+  """ID danh mục cần cập nhật"""
   id: Int!
 }
 
@@ -408,13 +419,45 @@ input UpdateDiscountInput {
 }
 
 input CreateMenuInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  """Tên món ăn"""
+  name: String!
+
+  """Mô tả món ăn"""
+  description: String
+
+  """Giá món ăn"""
+  price: Int!
+
+  """URL hình ảnh"""
+  imageUrl: String
+
+  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
+  available: String!
+
+  """ID danh mục"""
+  categoryId: Int!
 }
 
 input UpdateMenuInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  """Tên món ăn"""
+  name: String
+
+  """Mô tả món ăn"""
+  description: String
+
+  """Giá món ăn"""
+  price: Int
+
+  """URL hình ảnh"""
+  imageUrl: String
+
+  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
+  available: String
+
+  """ID danh mục"""
+  categoryId: Int
+
+  """ID món ăn cần cập nhật"""
   id: Int!
 }
 
@@ -452,13 +495,25 @@ input UpdatePaymentInput {
 }
 
 input CreateRestaurantInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  name: String!
+  description: String
+  phone: String!
+  openTime: String!
+  closeTime: String!
+  status: String
+  addressId: Int!
+  ownerId: Int!
 }
 
 input UpdateRestaurantInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  name: String
+  description: String
+  phone: String
+  openTime: String
+  closeTime: String
+  status: String
+  addressId: Int
+  ownerId: Int
   id: Int!
 }
 

@@ -3,6 +3,7 @@ import { CreateNotificationInput } from './dto/create-notification.input';
 import { UpdateNotificationInput } from './dto/update-notification.input';
 import {
   ClientProxy,
+  ClientRMQ,
   EventPattern,
   MessagePattern,
 } from '@nestjs/microservices';
@@ -12,23 +13,14 @@ import * as amqp from 'amqplib';
 @Injectable()
 export class NotificationService {
   constructor(
-    @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientProxy,
+    @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientRMQ,
   ) {}
 
-  sendNotification() {
-    this.rabbitClient.emit('send.otp', 'Khong co gi');
+  async sendNotification() {
+    await this.rabbitClient.connect();
+    this.rabbitClient.emit('otp_authentication', 'Hihi');
+
     return 'Message sent';
-  }
-
-  // @EventPattern('send.otp')
-  // handleGetMessage(message: string) {
-  //   console.log(message);
-  // }
-
-  @EventPattern('send.otp')
-  async handleOrderCreated(orderData: any) {
-    console.log('Received Order:', orderData);
-    await pubSub.publish('send.otp', { orderCreated: orderData });
   }
 
   create(createNotificationInput: CreateNotificationInput) {

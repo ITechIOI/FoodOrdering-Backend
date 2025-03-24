@@ -1,50 +1,39 @@
+// src/modules/goong/goong.service.ts
+import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { CreateMapInput } from './dto/create-map.input';
-import { UpdateMapInput } from './dto/update-map.input';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-
-// Use Goong Map API
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class MapService {
   private apiKey: string;
+  private baseUrl = 'https://rsapi.goong.io';
 
-  constructor(private readonly configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('GOONG_MAPS_API_KEY') || '';
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {
+    this.apiKey = this.configService.get('GOONG_MAP_API_KEY') || "";
   }
 
-  // Chuyển địa chỉ thành tọa độ
-  async getGeolocation(address: string): Promise<any> {
-    const url = `https://rsapi.goong.io/Geocode?address=${encodeURIComponent(address)}&api_key=${this.apiKey}`;
-    const response = await axios.get(url);
-    return response.data;
+  async reverseGeocode(lat: number, lng: number): Promise<any> {
+    const url = `${this.baseUrl}/Geocode`;
+    const params = { latlng: `${lat},${lng}`, api_key: this.apiKey };
+    const result = await lastValueFrom(this.httpService.get(url, { params }));
+    return result.data;
   }
 
-  // Tính khoảng cách giữa hai điểm
-  async getDistance(origin: string, destination: string): Promise<any> {
-    const url = `https://rsapi.goong.io/DistanceMatrix?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&vehicle=bike&api_key=${this.apiKey}`;
-    const response = await axios.get(url);
-    return response.data;
+  async searchPlace(input: string): Promise<any> {
+    const url = `${this.baseUrl}/Place/AutoComplete`;
+    const params = { input, api_key: this.apiKey };
+    const result = await lastValueFrom(this.httpService.get(url, { params }));
+    return result.data;
   }
 
-  create(createMapInput: CreateMapInput) {
-    return 'This action adds a new map';
-  }
-
-  findAll() {
-    return `This action returns all map`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} map`;
-  }
-
-  update(id: number, updateMapInput: UpdateMapInput) {
-    return `This action updates a #${id} map`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} map`;
+  async direction(from: string, to: string): Promise<any> {
+    const url = `${this.baseUrl}/Direction`;
+    const params = { origin: from, destination: to, api_key: this.apiKey };
+    const result = await lastValueFrom(this.httpService.get(url, { params }));
+    return result.data;
   }
 }

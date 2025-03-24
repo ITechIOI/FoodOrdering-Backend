@@ -10,16 +10,18 @@ import { NotificationService } from './notification.service';
 import { Notification } from '../../entities/notification.entity';
 import { CreateNotificationInput } from './dto/create-notification.input';
 import { UpdateNotificationInput } from './dto/update-notification.input';
-import { EventPattern, MessagePattern } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { pubSub } from 'src/utils/pubsub';
-import { NotificationGateway } from './notification.gateway';
 
 @Resolver(() => Notification)
 export class NotificationResolver {
-  constructor(
-    private readonly notificationService: NotificationService,
-    private readonly notificationGateway: NotificationGateway,
-  ) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
   @Mutation(() => Notification)
   createNotification(
@@ -29,14 +31,25 @@ export class NotificationResolver {
     return this.notificationService.create(createNotificationInput);
   }
 
-  @Subscription(() => String, {
-    resolve: (payload) => payload,
-  })
-  otpSent() {
-    return this.notificationGateway
-      .getPubSub()
-      .asyncIterableIterator('otpSent');
+  @EventPattern('otp_authentication')
+  async handleOrderCreated(@Payload() message: any, @Ctx() ctx: RmqContext) {
+    console.log('Send.otp');
+    const routingKey = ctx.getMessage().fields.routingKey;
+    console.log('📩 Routing key:', routingKey);
+    // console.log('📩 Routing key:', ctx);
+    console.log('📩 Message:', message);
   }
+
+  // @EventPattern('send.otp')
+  // async handleOrderCreated(orderData: any) {
+  //   console.log('Received Order:', orderData);
+  //   await pubSub.publish('send.otp', { orderCreated: orderData });
+  // }
+
+  // @MessagePattern('send.otp')
+  // handlePayment(data: { amount: string }) {
+  //   console.log('💸 Handle payment:', data.amount);
+  // }
 
   @Query(() => [Notification], { name: 'notification' })
   findAll() {
@@ -64,7 +77,7 @@ export class NotificationResolver {
     return this.notificationService.remove(id);
   }
 
-  @Mutation(() => String)
+  @Query(() => String)
   async sendNotification() {
     return this.notificationService.sendNotification();
   }

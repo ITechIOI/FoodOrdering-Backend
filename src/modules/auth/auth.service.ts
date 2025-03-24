@@ -5,7 +5,7 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { EmailService } from 'src/common/services/email.service';
+import { EmailService } from 'src/common/services/notification/email.service';
 import { UpdateUserInput } from '../users/dto/update-user.input';
 import { AuthPayload } from 'src/utils/authpayload';
 
@@ -56,11 +56,13 @@ export class AuthService {
       otpCode: otp,
       roleId: user.role.id,
     };
+    let message: string = `Mã OTP của bạn là: ${otp} (Có hiệu lực trong 1 phút)`;
+    const subject = 'Xác thực đăng nhập OTP';
     newUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // OTP hết hạn sau 5 phút
 
     const updatedUser = await this.userService.updateUser(user.id, newUser);
     console.log('Updated user:', updatedUser);
-    await this.emailService.sendVerificationEmail(user.email, otp);
+    await this.emailService.sendNotification(user.email, subject, message);
     return { token: otp };
   }
 

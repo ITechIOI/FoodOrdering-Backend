@@ -5,19 +5,14 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { UsersModule } from './modules/users/users.module';
-import { UsersResolver } from './modules/users/users.resolver';
-import { AuthResolver } from './modules/auth/auth.resolver';
 import { AuthModule } from './modules/auth/auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { ConfigModule } from '@nestjs/config';
-import { GraphQLFormattedError } from 'graphql';
 import { formatGraphQLError } from './common/interceptors/error.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { EmailService } from './common/services/email.service';
+import { EmailService } from './common/services/notification/email.service';
 import { NotificationModule } from './modules/notification/notification.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { MapModule } from './modules/map/map.module';
-import { Address } from './entities/address.entity';
 import { CategoryModule } from './modules/category/category.module';
 import { AddressModule } from './modules/address/address.module';
 import { DiscountModule } from './modules/discount/discount.module';
@@ -28,22 +23,23 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { RestaurantModule } from './modules/restaurant/restaurant.module';
 import { RevenueReportModule } from './modules/revenue_report/revenue_report.module';
 import { ReviewModule } from './modules/review/review.module';
+import * as redisStore from 'cache-manager-ioredis';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: redisStore,
+        host: 'localhost',
+        port: 6379,
+        ttl: 60 * 10,
+      }),
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schemas/schema.gql'),
-      // autoSchemaFile: true,
-      // Format response lỗi
-      // formatError: (error: GraphQLFormattedError) => {
-      //   const extensions = error.extensions || {};
-      //   return {
-      //     statusCode: (extensions['statusCode'] as number) || 500,
-      //     message: error.message || 'Internal Server Error',
-      //     data: null,
-      //   };
-      // },
       csrfPrevention: false,
       buildSchemaOptions: {
         numberScalarMode: 'integer',
