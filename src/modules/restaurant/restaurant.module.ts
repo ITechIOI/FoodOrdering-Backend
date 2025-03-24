@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Restaurant } from 'src/entities/restaurant.entity';
 import { Address } from 'src/entities/address.entity';
 import { User } from 'src/entities/user.entity';
+import { AddressModule } from '../address/address.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Restaurant, Address, User])],
+  imports: [TypeOrmModule.forFeature([Restaurant]), AddressModule, UsersModule],
   providers: [RestaurantResolver, RestaurantService],
   exports: [RestaurantService],
 })

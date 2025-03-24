@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Restaurant } from '../../entities/restaurant.entity';
 import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
-import { Address } from '../../entities/address.entity';
-import { User } from '../../entities/user.entity';
+import { AddressService } from '../address/address.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class RestaurantService {
@@ -13,31 +13,21 @@ export class RestaurantService {
     @InjectRepository(Restaurant)
     private restaurantRepository: Repository<Restaurant>,
 
-    @InjectRepository(Address)
-    private addressRepository: Repository<Address>,
-
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly addressService: AddressService,
+    private readonly userService: UsersService,
   ) {}
-
   async create(
     createRestaurantInput: CreateRestaurantInput,
   ): Promise<Restaurant> {
     const { addressId, ownerId, ...data } = createRestaurantInput;
 
-    // Kiểm tra xem address có tồn tại không
-    const address = await this.addressRepository.findOne({
-      where: { id: addressId },
-    });
-    if (!address)
-      throw new NotFoundException(`Address with ID ${addressId} not found`);
+    const address = await this.addressService.findOneAddress(addressId);
 
-    // Kiểm tra xem user (owner) có tồn tại không
-    const owner = await this.userRepository.findOne({ where: { id: ownerId } });
-    if (!owner)
+    const owner = await this.userService.findOneById(ownerId);
+    if (!owner) {
       throw new NotFoundException(`Owner with ID ${ownerId} not found`);
+    }
 
-    // Tạo nhà hàng mới
     const newRestaurant = this.restaurantRepository.create({
       ...data,
       address,
@@ -46,7 +36,6 @@ export class RestaurantService {
 
     return await this.restaurantRepository.save(newRestaurant);
   }
-
   async findAll(): Promise<Restaurant[]> {
     return await this.restaurantRepository.find({
       relations: ['address', 'owner'],
@@ -55,7 +44,7 @@ export class RestaurantService {
 
   async findOne(id: number): Promise<Restaurant> {
     const restaurant = await this.restaurantRepository.findOne({
-      where: { id },
+      where: { id, deletedAt: IsNull() },
       relations: ['address', 'owner'],
     });
 
@@ -68,24 +57,34 @@ export class RestaurantService {
     id: number,
     updateRestaurantInput: UpdateRestaurantInput,
   ): Promise<Restaurant> {
-    const restaurant = await this.restaurantRepository.findOne({
-      where: { id },
-    });
-    if (!restaurant)
-      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+    const restaurant = await this.findOne(id);
+
+    if (updateRestaurantInput.addressId) {
+      restaurant.address = await this.addressService.findOneAddress(
+        updateRestaurantInput.addressId,
+      );
+    }
+
+    if (updateRestaurantInput.ownerId) {
+      const owner = await this.userService.findOneById(
+        updateRestaurantInput.ownerId,
+      );
+      if (!owner) {
+        throw new NotFoundException(
+          `Owner with ID ${updateRestaurantInput.ownerId} not found`,
+        );
+      }
+      restaurant.owner = owner;
+    }
 
     Object.assign(restaurant, updateRestaurantInput);
     return await this.restaurantRepository.save(restaurant);
   }
 
   async remove(id: number): Promise<Restaurant> {
-    const restaurant = await this.restaurantRepository.findOne({
-      where: { id },
-    });
-    if (!restaurant)
-      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+    const restaurant = await this.findOne(id);
 
-    await this.restaurantRepository.remove(restaurant);
-    return restaurant;
+    restaurant.deletedAt = new Date(); // Đánh dấu là đã xóa (soft delete)
+    return await this.restaurantRepository.save(restaurant);
   }
 }

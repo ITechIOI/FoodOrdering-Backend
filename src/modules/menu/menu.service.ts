@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { Menu } from 'src/entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Menu } from 'src/entities/menu.entity';
-import { Category } from 'src/entities/category.entity';
+import { CategoryService } from '../category/category.service';
 
 @Injectable()
 export class MenuService {
@@ -12,17 +12,14 @@ export class MenuService {
     @InjectRepository(Menu)
     private readonly menuRepository: Repository<Menu>,
 
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
+    private readonly categoryService: CategoryService,
   ) {}
 
   async create(createMenuInput: CreateMenuInput): Promise<Menu> {
     const { name, description, price, imageUrl, available, categoryId } =
       createMenuInput;
 
-    const category = await this.categoryRepository.findOne({
-      where: { id: categoryId },
-    });
+    const category = await this.categoryService.findOne(categoryId);
     if (!category) {
       throw new NotFoundException(`Category with ID ${categoryId} not found`);
     }
@@ -45,7 +42,7 @@ export class MenuService {
 
   async findOne(id: number): Promise<Menu> {
     const menu = await this.menuRepository.findOne({
-      where: { id },
+      where: { id, deletedAt: IsNull() },
       relations: ['category', 'orderDetail'],
     });
 
@@ -75,9 +72,9 @@ export class MenuService {
       menu.available = updateMenuInput.available;
     }
     if (updateMenuInput.categoryId) {
-      const category = await this.categoryRepository.findOne({
-        where: { id: updateMenuInput.categoryId },
-      });
+      const category = await this.categoryService.findOne(
+        updateMenuInput.categoryId,
+      );
       if (!category) {
         throw new NotFoundException(
           `Category with ID ${updateMenuInput.categoryId} not found`,
@@ -90,11 +87,9 @@ export class MenuService {
   }
 
   async remove(id: number): Promise<Menu> {
-    const menu = await this.menuRepository.findOne({ where: { id } }); // 🔍 Tìm menu trước khi xóa
-    if (!menu) {
-      throw new Error(`Menu với ID ${id} không tồn tại!`);
-    }
-    await this.menuRepository.delete(id);
+    const menu = await this.findOne(id);
+    menu.deletedAt = new Date();
+    await this.menuRepository.save(menu);
     return menu;
   }
 }
