@@ -6,6 +6,7 @@ import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 import { AddressService } from '../address/address.service';
 import { UsersService } from '../users/users.service';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class RestaurantService {
@@ -36,10 +37,17 @@ export class RestaurantService {
 
     return await this.restaurantRepository.save(newRestaurant);
   }
-  async findAll(): Promise<Restaurant[]> {
-    return await this.restaurantRepository.find({
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Restaurant>> {
+    const [data, total] = await this.restaurantRepository.findAndCount({
       relations: ['address', 'owner'],
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { data, total };
   }
 
   async findOne(id: number): Promise<Restaurant> {
