@@ -10,62 +10,51 @@ import { NotificationService } from './notification.service';
 import { Notification } from '../../entities/notification.entity';
 import { CreateNotificationInput } from './dto/create-notification.input';
 import { UpdateNotificationInput } from './dto/update-notification.input';
-import { EventPattern, MessagePattern } from '@nestjs/microservices';
-import { pubSub } from 'src/utils/pubsub';
-import { NotificationGateway } from './notification.gateway';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
+import { createPaginatedType } from 'src/utils/paginated';
+
+const PaginatedUser = createPaginatedType(
+  Notification,
+  'PaginatedNotification',
+);
 
 @Resolver(() => Notification)
 export class NotificationResolver {
-  constructor(
-    private readonly notificationService: NotificationService,
-    private readonly notificationGateway: NotificationGateway,
-  ) {}
+  constructor(private readonly notificationService: NotificationService) {}
 
   @Mutation(() => Notification)
-  createNotification(
+  async createNotification(
     @Args('createNotificationInput')
     createNotificationInput: CreateNotificationInput,
   ) {
-    return this.notificationService.create(createNotificationInput);
+    return await this.notificationService.create(createNotificationInput);
   }
 
-  @Subscription(() => String, {
-    resolve: (payload) => payload,
-  })
-  otpSent() {
-    return this.notificationGateway
-      .getPubSub()
-      .asyncIterableIterator('otpSent');
+  @EventPattern('otp_authentication')
+  async handleOrderCreated(@Payload() message: any, @Ctx() ctx: RmqContext) {
+    console.log('Send.otp');
+    const routingKey = ctx.getMessage().fields.routingKey;
+    console.log('Routing key:', routingKey);
+    console.log('Message:', message);
   }
 
-  @Query(() => [Notification], { name: 'notification' })
-  findAll() {
-    return this.notificationService.findAll();
-  }
-
-  @Query(() => Notification, { name: 'notification' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.notificationService.findOne(id);
-  }
-
-  @Mutation(() => Notification)
-  updateNotification(
-    @Args('updateNotificationInput')
-    updateNotificationInput: UpdateNotificationInput,
-  ) {
-    return this.notificationService.update(
-      updateNotificationInput.id,
-      updateNotificationInput,
-    );
-  }
-
-  @Mutation(() => Notification)
-  removeNotification(@Args('id', { type: () => Int }) id: number) {
-    return this.notificationService.remove(id);
-  }
-
-  @Mutation(() => String)
+  @Query(() => String)
   async sendNotification() {
-    return this.notificationService.sendNotification();
+    return await this.notificationService.sendNotification();
+  }
+
+  @Query(() => PaginatedUser)
+  async findByUserId(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('page', { type: () => Int, nullable: true }) page: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit: number,
+  ) {
+    return await this.notificationService.findByIdUser(userId, page, limit);
   }
 }

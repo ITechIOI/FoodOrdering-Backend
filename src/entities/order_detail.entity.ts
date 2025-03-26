@@ -3,14 +3,11 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
 import { Menu } from './menu.entity';
 import { User } from './user.entity';
+import { Order } from './order.entity';
 
 @Entity({ name: 'order_details' })
 @ObjectType('OrderDetail')
-export class OrderDetail {
-  @Field(() => Int)
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class OrderDetail extends AbstractEntity<OrderDetail> {
   @Field(() => Int, { nullable: true })
   @Column({ nullable: true })
   quantity: number;
@@ -23,7 +20,11 @@ export class OrderDetail {
   @ManyToOne(() => Menu, (menu) => menu.orderDetail)
   menu: Menu;
 
-  @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.orderDetail)
-  user: User;
+  // @Field(() => User, { nullable: true })
+  // @ManyToOne(() => User, (user) => user.orderDetail)
+  // user: User;
+
+  @Field(() => Order, { nullable: true })
+  @ManyToOne(() => Order, (order) => order.orderDetail)
+  order: Order;
 }

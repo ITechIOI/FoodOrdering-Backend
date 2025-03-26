@@ -3,11 +3,11 @@ import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class EmailService {
+export class EmailService implements INotification {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    // ✅ Cấu hình Mailtrap SMTP
+    // Cấu hình Mailtrap SMTP
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('MAILTRAP_HOST'),
       port: this.configService.get<number>('MAILTRAP_PORT'),
@@ -18,13 +18,13 @@ export class EmailService {
     });
   }
 
-  // ✅ Hàm gửi email
-  async sendVerificationEmail(to: string, otp: string) {
+  //  Hàm gửi email
+  async sendNotification(to: string, subject: string, message: string) {
     const mailOptions = {
       from: this.configService.get<string>('MAIL_FROM'),
       to,
-      subject: 'Mã xác thực đăng nhập',
-      text: `Mã OTP của bạn là: ${otp} (Có hiệu lực trong 1 phút)`,
+      subject: subject,
+      text: `Mã OTP của bạn là: ${message} (Có hiệu lực trong 1 phút)`,
     };
 
     await this.transporter.sendMail(mailOptions);

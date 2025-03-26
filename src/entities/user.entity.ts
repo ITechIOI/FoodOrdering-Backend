@@ -71,9 +71,9 @@ export class User extends AbstractEntity<User> {
   @OneToMany(() => Notification, (notification) => notification.receiver)
   notification: Notification[];
 
-  @Field(() => [OrderDetail], { nullable: true })
-  @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.user)
-  orderDetail: OrderDetail[];
+  // @Field(() => [OrderDetail], { nullable: true })
+  // @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.user)
+  // orderDetail: OrderDetail[];
 
   @Field(() => [Restaurant], { nullable: true })
   @OneToMany(() => Restaurant, (restaurant) => restaurant.owner)
