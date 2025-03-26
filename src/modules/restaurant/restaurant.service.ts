@@ -32,7 +32,6 @@ export class RestaurantService {
       throw new NotFoundException(`Owner with ID ${ownerId} not found`);
     }
 
-    // Chỉ lấy địa chỉ đầu tiên trong danh sách nếu có nhiều
     const restaurant = this.restaurantRepository.create({
       ...data,
       address,

@@ -1,35 +1,55 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { ComplaintService } from './complaint.service';
-import { Complaint } from '../../entities/complaint.entity';
+import { Complaint } from 'src/entities/complaint.entity';
 import { CreateComplaintInput } from './dto/create-complaint.input';
 import { UpdateComplaintInput } from './dto/update-complaint.input';
+import { createPaginatedType } from 'src/utils/paginated';
+
+const PaginatedComplaintResponse = createPaginatedType(
+  Complaint,
+  'PaginatedComplaintResponse',
+);
 
 @Resolver(() => Complaint)
 export class ComplaintResolver {
   constructor(private readonly complaintService: ComplaintService) {}
 
   @Mutation(() => Complaint)
-  createComplaint(@Args('createComplaintInput') createComplaintInput: CreateComplaintInput) {
+  async createComplaint(
+    @Args('createComplaintInput') createComplaintInput: CreateComplaintInput,
+  ): Promise<Complaint> {
     return this.complaintService.create(createComplaintInput);
   }
 
-  @Query(() => [Complaint], { name: 'complaint' })
-  findAll() {
-    return this.complaintService.findAll();
+  @Query(() => PaginatedComplaintResponse, { name: 'complaints' })
+  async findAll(
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ) {
+    return await this.complaintService.findAll(page, limit);
   }
 
   @Query(() => Complaint, { name: 'complaint' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
+  async findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<Complaint> {
     return this.complaintService.findOne(id);
   }
 
   @Mutation(() => Complaint)
-  updateComplaint(@Args('updateComplaintInput') updateComplaintInput: UpdateComplaintInput) {
-    return this.complaintService.update(updateComplaintInput.id, updateComplaintInput);
+  async updateComplaint(
+    @Args('updateComplaintInput') updateComplaintInput: UpdateComplaintInput,
+  ): Promise<Complaint> {
+    return this.complaintService.update(
+      updateComplaintInput.id,
+      updateComplaintInput,
+    );
   }
 
   @Mutation(() => Complaint)
-  removeComplaint(@Args('id', { type: () => Int }) id: number) {
+  async removeComplaint(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<Complaint> {
     return this.complaintService.remove(id);
   }
 }
