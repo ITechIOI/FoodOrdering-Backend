@@ -9,13 +9,13 @@ export class RolesResolver {
   constructor(private readonly rolesService: RolesService) {}
 
   @Query(() => [Role])
-  findAllRole() {
-    return this.rolesService.findAll();
+  async findAllRole() {
+    return await this.rolesService.findAll();
   }
 
   @Query(() => Role)
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.rolesService.findOne(id);
+  async findOne(@Args('id', { type: () => Int }) id: number) {
+    return await this.rolesService.findOne(id);
   }
 
   @Mutation(() => Role)

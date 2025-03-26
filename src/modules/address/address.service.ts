@@ -11,7 +11,6 @@ export class AddressService {
   constructor(
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
-    private readonly configService: ConfigService,
   ) {}
 
   async createAddress(
@@ -36,7 +35,7 @@ export class AddressService {
     return await this.addressRepository
       .createQueryBuilder('address')
       .where('address.id = :id', { id })
-      .andWhere('address.isDeleted is null')
+      .andWhere('address.deletedAt is null')
       .getOneOrFail();
   }
 
@@ -55,12 +54,39 @@ export class AddressService {
     return await this.addressRepository.save(address);
   }
 
+  // async findNearestRestaurants(
+  //   userLat: number,
+  //   userLng: number,
+  //   limit = 20,
+  // ): Promise<Address[]> {
+  //   return this.addressRepository
+  //     .createQueryBuilder('address')
+  //     .where('address.label = :label', { label: 'restaurant' })
+  //     .andWhere(
+  //       'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+  //     )
+  //     .addSelect(
+  //       `
+  //       6371 * acos(
+  //         cos(radians(:userLat)) * cos(radians(address.latitude)) *
+  //         cos(radians(address.longitude) - radians(:userLng)) +
+  //         sin(radians(:userLat)) * sin(radians(address.latitude))
+  //       )
+  //     `,
+  //       'distance',
+  //     )
+  //     .orderBy('distance', 'ASC')
+  //     .limit(limit)
+  //     .setParameters({ userLat, userLng })
+  //     .getMany();
+  // }
+
   async findNearestRestaurants(
     userLat: number,
     userLng: number,
     limit = 20,
-  ): Promise<Address[]> {
-    return this.addressRepository
+  ): Promise<(Address & { distance: number })[]> {
+    const query = this.addressRepository
       .createQueryBuilder('address')
       .where('address.label = :label', { label: 'restaurant' })
       .andWhere(
@@ -78,7 +104,13 @@ export class AddressService {
       )
       .orderBy('distance', 'ASC')
       .limit(limit)
-      .setParameters({ userLat, userLng })
-      .getMany();
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    return entities.map((entity, i) => ({
+      ...entity,
+      distance: parseFloat(raw[i].distance),
+    }));
   }
 }

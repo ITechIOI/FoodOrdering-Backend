@@ -9,13 +9,16 @@ import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Role } from 'src/entities/role.entity';
 import { RolesService } from '../roles/roles.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileUpload } from 'graphql-upload-minimal';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from '@nestjs/cache-manager';
+import Redis from 'ioredis';
+import { ClientProxy } from '@nestjs/microservices';
+import { CacheService } from 'src/common/cache/cache.service';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +29,8 @@ export class UsersService {
     private cloudinaryService: CloudinaryService,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
+    @Inject('REDIS_SERVICE') private readonly cacheClient: ClientProxy,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
@@ -42,8 +47,6 @@ export class UsersService {
       if (!savedUser.id) {
         throw new InternalServerErrorException('User ID not generated');
       }
-      // console.log(savedUser);
-      // throw new ConflictException('Role not found');
       return savedUser;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -52,14 +55,7 @@ export class UsersService {
 
   async findOneByUsername(username: string): Promise<User | null> {
     return await this.userRepository.findOne({
-      where: { username },
-      relations: ['role'],
-    });
-  }
-
-  async findOneById(id: number): Promise<User | null> {
-    return await this.userRepository.findOne({
-      where: { id },
+      where: { username, deletedAt: IsNull() },
       relations: ['role'],
     });
   }
@@ -73,7 +69,7 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findOne({
-      where: { email },
+      where: { email, deletedAt: IsNull() },
       relations: ['role'],
     });
   }
@@ -109,7 +105,7 @@ export class UsersService {
         throw new Error('createReadStream is not available');
       }
 
-      const stream = createReadStream(); // ✅ Bây giờ có thể gọi được
+      const stream = createReadStream();
       const uploadResponse = await this.cloudinaryService.uploadImage(stream);
       console.log('Upload response: ', uploadResponse);
       const imageUrl =
@@ -120,7 +116,7 @@ export class UsersService {
       });
       this.userRepository.save(newUser);
 
-      return uploadResponse.secure_url; // ✅ Trả về URL ảnh
+      return uploadResponse.secure_url;
     } catch (error) {
       console.error('Upload error:', error);
       throw new InternalServerErrorException(error.message);
@@ -145,7 +141,7 @@ export class UsersService {
         throw new Error('createReadStream is not available');
       }
 
-      const stream = createReadStream(); // ✅ Bây giờ có thể gọi được
+      const stream = createReadStream();
       const uploadResponse = await this.cloudinaryService.uploadImage(stream);
       console.log('Upload response: ', uploadResponse);
       imageUrl = uploadResponse.secure_url + ' ' + uploadResponse.public_id;
@@ -155,7 +151,7 @@ export class UsersService {
       });
       this.userRepository.save(newUser);
       // const saveUser = await this.userRepository.save(newUser);
-      return uploadResponse.secure_url; // ✅ Trả về URL ảnh
+      return uploadResponse.secure_url;
     } catch (error) {
       console.error('Upload error:', error);
       throw new InternalServerErrorException(error.message);
@@ -169,6 +165,35 @@ export class UsersService {
     }
     user.deletedAt = new Date();
     return await this.userRepository.save(user);
+  }
+
+  async findOneById(id: number): Promise<User | null> {
+    try {
+      const cacheKey = `user:detail:${id}`;
+      const cacheUserString = await this.cacheService.getCache(cacheKey);
+      console.log('Raw data', cacheUserString);
+      await this.cacheClient.emit('user.cache.set', cacheUserString);
+      if (cacheUserString) {
+        console.log('[CACHE] HIT:', cacheKey);
+        return JSON.parse(cacheUserString);
+      }
+      console.log('Cache miss:', cacheKey);
+
+      const user = await this.userRepository.findOne({
+        where: { id, deletedAt: IsNull() },
+        relations: ['role'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // await this.cacheService.setCache(cacheKey, JSON.stringify(user), 30000);
+      await this.cacheClient.emit('user.cache.set', JSON.stringify(user));
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async findAllUser(
@@ -194,8 +219,7 @@ export class UsersService {
 
     const result = { total, data };
 
-    await this.cacheManager.set(cacheKey, result, 300); // ✅ Đặt TTL 5 phút
-
+    await this.cacheManager.set(cacheKey, result, 30000);
     return result;
   }
 }

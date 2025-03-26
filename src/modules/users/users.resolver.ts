@@ -10,7 +10,10 @@ import {
   Upload,
 } from 'graphql-upload-minimal';
 import { createPaginatedType } from 'src/utils/paginated';
-import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
 
 const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
@@ -47,16 +50,6 @@ export class UsersResolver {
     return this.usersService.updateAvatar(id, resolvedFile);
   }
 
-  // @Query(() => [User])
-  // async findAllUser() {
-  //   return await this.usersService.findAll();
-  // }
-
-  // @Query(() => User)
-  // findUserById(@Args('id', { type: () => Int }) id: number) {
-  //   return this.usersService.findOne(id);
-  // }
-
   @Mutation(() => User)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     // console.log(updateUserInput);
@@ -69,14 +62,19 @@ export class UsersResolver {
   }
 
   @Query(() => PaginatedUser)
-  // @UseInterceptors(CacheInterceptor)
-  // @CacheKey('user:all')
-  // @CacheTTL(300)
   async findAllUsers(
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
   ) {
     console.log('Querying all users');
     return this.usersService.findAllUser(page, limit);
+  }
+
+  @Query(() => User)
+  // @UseGuards(AuthGuard, RoleGuard)
+  // @Roles('manager', 'customer')
+  async findUserById(@Args('id', { type: () => Int }) id: number) {
+    console.log('Querying user by ID');
+    return this.usersService.findOneById(id);
   }
 }

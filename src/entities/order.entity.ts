@@ -8,6 +8,7 @@ import { Discount } from './discount.entity';
 import { Payment } from './payment.entity';
 import { Review } from './review.entity';
 import { Notification } from './notification.entity';
+import { OrderDetail } from './order_detail.entity';
 
 @Entity({ name: 'orders' })
 @ObjectType('Order')
@@ -55,7 +56,11 @@ export class Order extends AbstractEntity<Order> {
   @OneToMany(() => Review, (review) => review.order)
   review: Review[];
 
-  @Field(() => [Notification], { nullable: true })
-  @OneToMany(() => Notification, (review) => review.order)
-  notification: Notification[];
+  @Field(() => [OrderDetail], { nullable: true })
+  @OneToMany(() => OrderDetail, (details) => details.order)
+  orderDetail: OrderDetail[];
+
+  // @Field(() => [Notification], { nullable: true })
+  // @OneToMany(() => Notification, (review) => review.order)
+  // notification: Notification[];
 }

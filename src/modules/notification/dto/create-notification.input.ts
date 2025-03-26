@@ -2,8 +2,8 @@ import { InputType, Int, Field } from '@nestjs/graphql';
 
 @InputType()
 export class CreateNotificationInput {
-  @Field(() => Int)
-  id: number;
+  @Field(() => String)
+  title: string;
 
   @Field(() => String)
   content: string;
@@ -17,6 +17,6 @@ export class CreateNotificationInput {
   @Field(() => Int)
   userId: number;
 
-  @Field(() => Int)
-  orderId: number;
+  // @Field(() => Int)
+  // orderId: number;
 }

@@ -51,9 +51,10 @@ async function bootstrap() {
 
   const rabbitUrl = configService.get<string>('RABBITMQ_URL') || '';
   const otpQueue = configService.get<string>('RABBITMQ_QUEUE_OTP') || '';
-  const orderQueue = configService.get<string>('RABBITMQ_QUEUE_ORDER') || '';
+  const orderQueue = configService.get<string>('RABBITMQ_QUEUE_PAYMENT') || '';
   const statusQueue =
     configService.get<string>('RABBITMQ_QUEUE_ORDER_STATUS') || '';
+  const redisQueue = configService.get<string>('REDIS_QUEUE') || '';
 
   const otpAuthenticationApp =
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -89,9 +90,24 @@ async function bootstrap() {
       },
     });
 
+  const redisApp = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitUrl],
+        queue: redisQueue,
+        queueOptions: {
+          durable: true,
+        },
+      },
+    },
+  );
+
   otpAuthenticationApp.listen();
   orderConfirmationApp.listen();
   orderStatusApp.listen();
+  redisApp.listen();
 
   await app.listen(3000);
 }

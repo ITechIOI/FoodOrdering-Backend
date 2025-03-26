@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
 import { Order } from './order.entity';
@@ -14,8 +14,8 @@ export class Discount extends AbstractEntity<Discount> {
   @Column({ nullable: true })
   description: string;
 
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
+  @Field(() => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
   percentage: number;
 
   @Field(() => Int, { nullable: true })

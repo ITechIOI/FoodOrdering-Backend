@@ -6,6 +6,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
 import { EmailService } from 'src/common/services/notification/email.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EmailService } from 'src/common/services/notification/email.service';
         },
       }),
     }),
+    NotificationModule,
   ],
   providers: [AuthResolver, AuthService, EmailService],
   exports: [AuthService],

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreatePaymentInput } from './dto/create-payment.input';
 import { UpdatePaymentInput } from './dto/update-payment.input';
 import { ConfigService } from '@nestjs/config';
@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import axios from 'axios';
 import { Order } from 'src/entities/order.entity';
 import { OrderService } from '../order/order.service';
+import { ClientRMQ } from '@nestjs/microservices';
 
 @Injectable()
 export class PaymentService {
@@ -16,11 +17,13 @@ export class PaymentService {
   private readonly apiUrl: string;
   private readonly successUrl: string;
   private readonly cancelUrl: string;
-  private readonly orderService: OrderService;
   @InjectRepository(Payment)
   private readonly paymentRepository: Repository<Payment>;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly orderService: OrderService,
+  ) {
     this.clientId = config.get('PAYPAL_CLIENT_ID') || '';
     this.clientSecret = config.get('PAYPAL_CLIENT_SECRET') || '';
     this.apiUrl = config.get('PAYPAL_API') || '';
@@ -48,7 +51,8 @@ export class PaymentService {
 
   async createPayment(createPaymentDto: CreatePaymentInput) {
     const token = await this.getAccessToken();
-    const amount = createPaymentDto.amount;
+    const order = await this.orderService.findOne(createPaymentDto.orderId);
+    const amount = order.totalPrice;
     const response = await axios.post(
       `${this.apiUrl}/v2/checkout/orders`,
       {
@@ -57,6 +61,7 @@ export class PaymentService {
           {
             amount: {
               currency_code: 'USD',
+              // currency_code: 'VND',
               value: amount,
             },
           },
@@ -76,13 +81,13 @@ export class PaymentService {
 
     // const order = await this.orderService.findOne(createPaymentDto.orderId);
 
-    //   const newPayment = this.paymentRepository.create({
-    //     transactionId: response.data.id,
-    //     paymentMethod: 'paypal',
-    //     order: order,
-    //     amount: amount,
-    //     status: 'pending',
-    //   });
+    const newPayment = this.paymentRepository.create({
+      transactionId: response.data.id,
+      ...createPaymentDto,
+      order,
+    });
+
+    const payment = await this.paymentRepository.save(newPayment);
 
     return response.data;
   }
@@ -103,14 +108,25 @@ export class PaymentService {
   }
 
   async findOneByTransactionId(transactionId: string): Promise<Payment> {
-    return this.paymentRepository
+    const payment = await this.paymentRepository
       .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.order', 'order')
       .where('payment.transactionId = :transactionId', { transactionId })
-      .where('payment.status = :status', { status: 'pending' })
-      .where('payment.deletedAt IS NULL')
+      .andWhere('payment.status = :status', { status: 'pending' })
+      .andWhere('payment.deletedAt IS NULL')
       .getOneOrFail();
+    return payment;
   }
 
+  async findUnpaidPaymentByOrderId(orderId: number): Promise<Payment[]> {
+    const payment = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.order.id = :orderId', { orderId })
+      .andWhere('payment.status = :status', { status: 'pending' })
+      .andWhere('payment.deletedAt IS NULL')
+      .getMany();
+    return payment;
+  }
   findAll() {
     return `This action returns all payment`;
   }
@@ -118,8 +134,9 @@ export class PaymentService {
   async findOne(id: number): Promise<Payment> {
     return this.paymentRepository
       .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.order', 'order')
       .where('payment.id = :id', { id })
-      .where('payment.deletedAt IS NULL')
+      .andWhere('payment.deletedAt IS NULL')
       .getOneOrFail();
   }
 
@@ -129,10 +146,15 @@ export class PaymentService {
       ...payment,
       ...updatePaymentInput,
     });
-    return this.paymentRepository.save(payment);
+    return this.paymentRepository.save(updatePayment);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} payment`;
+  async remove(id: number): Promise<Payment> {
+    const payment = await this.findOne(id);
+    const removePayment = this.paymentRepository.create({
+      ...payment,
+      deletedAt: new Date(),
+    });
+    return this.paymentRepository.save(removePayment);
   }
 }

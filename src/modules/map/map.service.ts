@@ -13,7 +13,7 @@ export class MapService {
     private httpService: HttpService,
     private configService: ConfigService,
   ) {
-    this.apiKey = this.configService.get('GOONG_MAP_API_KEY') || "";
+    this.apiKey = this.configService.get('GOONG_MAP_API_KEY') || '';
   }
 
   async reverseGeocode(lat: number, lng: number): Promise<any> {
@@ -35,5 +35,12 @@ export class MapService {
     const params = { origin: from, destination: to, api_key: this.apiKey };
     const result = await lastValueFrom(this.httpService.get(url, { params }));
     return result.data;
+  }
+
+  async getPlaceDetail(input: string): Promise<any> {
+    const resTemp = await this.httpService.axiosRef.get(
+      `https://rsapi.goong.io/Geocode?address=${input}&api_key=${this.apiKey}`,
+    );
+    return resTemp.data;
   }
 }

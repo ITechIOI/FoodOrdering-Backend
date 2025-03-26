@@ -9,12 +9,16 @@ import { Order } from './order.entity';
 export class Notification extends AbstractEntity<Notification> {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
+  title: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
   content: string;
 
   @Field(() => String, { nullable: true })
   @Column({
     type: 'enum',
-    enum: ['push', 'gmail'],
+    enum: ['push', 'email'],
     default: 'push',
   })
   type: string;
@@ -31,7 +35,7 @@ export class Notification extends AbstractEntity<Notification> {
   @ManyToOne(() => User, (user) => user.notification)
   receiver: User;
 
-  @Field(() => Order, { nullable: true })
-  @ManyToOne(() => Order, (order) => order.notification)
-  order: Order;
+  // @Field(() => Order, { nullable: true })
+  // @ManyToOne(() => Order, (order) => order.notification)
+  // order: Order;
 }

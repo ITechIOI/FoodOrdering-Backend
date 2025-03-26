@@ -11,6 +11,9 @@ export class CreateMenuInput {
   @Field(() => Int, { description: 'Giá món ăn' })
   price: number;
 
+  @Field(() => Int, { description: 'Giá món ăn' })
+  quantity: number;
+
   @Field(() => String, { nullable: true, description: 'URL hình ảnh' })
   imageUrl?: string;
 

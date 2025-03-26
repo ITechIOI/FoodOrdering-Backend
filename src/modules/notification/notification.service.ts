@@ -1,45 +1,91 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { UsersService } from 'src/modules/users/users.service';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateNotificationInput } from './dto/create-notification.input';
 import { UpdateNotificationInput } from './dto/update-notification.input';
-import {
-  ClientProxy,
-  ClientRMQ,
-  EventPattern,
-  MessagePattern,
-} from '@nestjs/microservices';
-import { pubSub } from 'src/utils/pubsub';
-import * as amqp from 'amqplib';
+import { ClientRMQ } from '@nestjs/microservices';
+import { PushService } from './strategy/push.service';
+import { EmailService } from './strategy/email.service';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Notification } from 'src/entities/notification.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class NotificationService {
+  private notificationStrategy: INotification;
+
   constructor(
     @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientRMQ,
-  ) {}
+    private readonly configService: ConfigService,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    private readonly userService: UsersService,
+  ) {
+    this.notificationStrategy = new PushService(this.configService);
+  }
 
   async sendNotification() {
     await this.rabbitClient.connect();
-    this.rabbitClient.emit('otp_authentication', 'Hihi');
+    this.rabbitClient.emit('otp', 'Hihi');
 
     return 'Message sent';
   }
 
-  create(createNotificationInput: CreateNotificationInput) {
-    return 'This action adds a new notification';
+  async create(
+    createNotificationDto: CreateNotificationInput,
+  ): Promise<Notification> {
+    const { userId, ...data } = createNotificationDto;
+
+    const user = await this.userService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (data.type === 'email') {
+      this.notificationStrategy = new EmailService(this.configService);
+      this.notificationStrategy.sendNotification(
+        user.email,
+        createNotificationDto.title,
+        createNotificationDto.content,
+      );
+    } else {
+      this.notificationStrategy = new PushService(this.configService);
+      this.notificationStrategy.sendNotification(
+        user.email,
+        createNotificationDto.title,
+        createNotificationDto.content,
+      );
+    }
+
+    const notification = this.notificationRepository.create({
+      ...createNotificationDto,
+      receiver: user,
+    });
+
+    return await this.notificationRepository.save(notification);
   }
 
-  findAll() {
-    return `This action returns all notification`;
-  }
+  async findByIdUser(
+    userId: number,
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    total: number;
+    data: Notification[];
+  }> {
+    const [data, total] = await this.notificationRepository
+      .createQueryBuilder('notification')
+      .where('notification.receiverId = :userId', { userId })
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getManyAndCount();
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
-  }
-
-  update(id: number, updateNotificationInput: UpdateNotificationInput) {
-    return `This action updates a #${id} notification`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+    const result = { total, data };
+    return result;
   }
 }
