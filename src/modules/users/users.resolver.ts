@@ -3,10 +3,6 @@ import { UsersService } from './users.service';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { User } from 'src/entities/user.entity';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
 import { GraphQLScalarType } from 'graphql';
 import {
   FileUpload,
@@ -14,6 +10,10 @@ import {
   Upload,
 } from 'graphql-upload-minimal';
 import { createPaginatedType } from 'src/utils/paginated';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
 
 const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
@@ -50,16 +50,6 @@ export class UsersResolver {
     return this.usersService.updateAvatar(id, resolvedFile);
   }
 
-  // @Query(() => [User])
-  // async findAllUser() {
-  //   return await this.usersService.findAll();
-  // }
-
-  // @Query(() => User)
-  // findUserById(@Args('id', { type: () => Int }) id: number) {
-  //   return this.usersService.findOne(id);
-  // }
-
   @Mutation(() => User)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     // console.log(updateUserInput);
@@ -76,6 +66,15 @@ export class UsersResolver {
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
   ) {
+    console.log('Querying all users');
     return this.usersService.findAllUser(page, limit);
+  }
+
+  @Query(() => User)
+  // @UseGuards(AuthGuard, RoleGuard)
+  // @Roles('manager', 'customer')
+  async findUserById(@Args('id', { type: () => Int }) id: number) {
+    console.log('Querying user by ID');
+    return this.usersService.findOneById(id);
   }
 }

@@ -1,4 +1,4 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { InputType, Int, Field, Float } from '@nestjs/graphql';
 
 @InputType()
 export class CreateAddressInput {
@@ -6,14 +6,23 @@ export class CreateAddressInput {
   label: string;
 
   @Field(() => String, { nullable: true })
-  formatAdress: string;
+  province: string;
 
-  @Field(() => Number)
+  @Field(() => String, { nullable: true })
+  district: string;
+
+  @Field(() => String, { nullable: true })
+  ward: string;
+
+  @Field(() => String, { nullable: true })
+  street: string;
+
+  @Field(() => Float)
   latitude: number;
 
-  @Field(() => Number)
+  @Field(() => Float)
   longitude: number;
 
   @Field(() => String, { nullable: true })
-  googleId: string;
+  placeId: string;
 }

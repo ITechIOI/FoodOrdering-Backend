@@ -14,7 +14,7 @@ export class Payment extends AbstractEntity<Payment> {
   @Field(() => String, { nullable: true })
   @Column({
     type: 'enum',
-    enum: ['cod', 'wallet'],
+    enum: ['cod', 'paypal'],
     default: 'cod',
   })
   paymentMethod: string;

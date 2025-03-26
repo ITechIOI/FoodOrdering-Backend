@@ -1,8 +1,9 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Float } from '@nestjs/graphql';
 import { MenuService } from './menu.service';
 import { Menu } from '../../entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
+import { NearbyMenuItem } from './dto/output/NearbyMenuItem';
 
 @Resolver(() => Menu)
 export class MenuResolver {
@@ -32,8 +33,31 @@ export class MenuResolver {
     return await this.menuService.update(updateMenuInput.id, updateMenuInput);
   }
 
-  @Mutation(() => Menu) // ✅ Trả về Menu thay vì Boolean
+  @Mutation(() => Menu) // Trả về Menu thay vì Boolean
   async removeMenu(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
     return await this.menuService.remove(id);
+  }
+
+  // find menus by categoryId
+  @Query(() => [Menu])
+  async findMenusByCategoryId(
+    @Args('categoryId', { type: () => Int }) categoryId: number,
+  ): Promise<Menu[]> {
+    return this.menuService.findByCategoryId(categoryId);
+  }
+
+  @Query(() => [NearbyMenuItem])
+  async searchNearbyMenuItems(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('keyword') keyword: string,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  ): Promise<NearbyMenuItem[]> {
+    return this.menuService.findMenuItemsNearbyByKeyword(
+      latitude,
+      longitude,
+      keyword,
+      limit,
+    );
   }
 }

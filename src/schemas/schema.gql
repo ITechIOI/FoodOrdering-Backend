@@ -34,10 +34,14 @@ type RevenueReport {
 
 type OrderDetail {
   id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
   quantity: Int
   note: String
   menu: Menu
-  user: Users
+  order: Order
 }
 
 type Menu {
@@ -49,6 +53,7 @@ type Menu {
   name: String
   description: String
   price: Int
+  quantity: Int
   imageUrl: String
   available: String
   category: Category
@@ -93,10 +98,13 @@ type Address {
   deletedAt: DateTime
   isActive: Boolean!
   label: String
-  formattedAddress: String
-  latitude: Int
-  longitude: Int
-  googleId: String
+  province: String
+  district: String
+  ward: String
+  street: String
+  latitude: Float
+  longitude: Float
+  placeId: String
   restaurant: [Restaurant!]
   order: [Order!]
   user: [Users!]
@@ -110,7 +118,7 @@ type Discount {
   isActive: Boolean!
   code: String
   description: String
-  percentage: Int
+  percentage: Float
   minOrderValue: Int
   count: Int
   startTime: DateTime
@@ -159,19 +167,6 @@ type Review {
   complaint: [Complaint!]
 }
 
-type Notification {
-  id: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  deletedAt: DateTime
-  isActive: Boolean!
-  content: String
-  type: String
-  isRead: String
-  receiver: Users
-  order: Order
-}
-
 type Order {
   id: Int!
   createdAt: DateTime!
@@ -179,6 +174,7 @@ type Order {
   deletedAt: DateTime
   isActive: Boolean!
   totalPrice: Int
+  shippingFee: Int
   status: String
   user: Users
   address: Address
@@ -186,7 +182,20 @@ type Order {
   discount: Discount
   payment: [Payment!]
   review: [Review!]
-  notification: [Notification!]
+  orderDetail: [OrderDetail!]
+}
+
+type Notification {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  title: String
+  content: String
+  type: String
+  isRead: String
+  receiver: Users
 }
 
 type Users {
@@ -210,7 +219,6 @@ type Users {
   sellerComplaint: [Complaint!]
   adminComplaint: [Complaint!]
   notification: [Notification!]
-  orderDetail: [OrderDetail!]
   restaurants: [Restaurant!]
   address: Address
 }
@@ -224,9 +232,56 @@ type AuthPayload {
   token: String!
 }
 
-type Map {
-  """Example field (placeholder)"""
-  exampleField: Int!
+type PaginatedNotification {
+  total: Int!
+  data: [Notification!]!
+}
+
+type MapPrediction {
+  description: String!
+  place_id: String!
+}
+
+type GoongAutoCompleteResult {
+  predictions: [MapPrediction!]!
+}
+
+type GoongGeocodeResult {
+  formatted_address: String!
+  place_id: String!
+}
+
+type PlaceDetails {
+  longitude: String!
+  latitude: String!
+  placeId: String!
+}
+
+type GoongDirectionResult {
+  summary: String!
+  distance: String!
+  duration: String!
+}
+
+type NearestRestaurant {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String
+  description: String
+  phone: String
+  openTime: String
+  closeTime: String
+  rating: Int
+  status: String
+  address: Address
+  revenueReport: [RevenueReport!]
+  categories: [Category!]
+  order: [Order!]
+  owner: Users
+  distance: Float!
 }
 
 type PaginatedAddress {
@@ -234,26 +289,96 @@ type PaginatedAddress {
   data: [Address!]!
 }
 
+type NearestAdress {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  label: String
+  province: String
+  district: String
+  ward: String
+  street: String
+  latitude: Float
+  longitude: Float
+  placeId: String
+  restaurant: [Restaurant!]
+  order: [Order!]
+  user: [Users!]
+  distance: Float!
+}
+
+type PaginatedDiscount {
+  total: Int!
+  data: [Discount!]!
+}
+
+type NearbyMenuItem {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: Boolean!
+  name: String
+  description: String
+  price: Int
+  quantity: Int
+  imageUrl: String
+  available: String
+  category: Category
+  orderDetail: [OrderDetail!]
+  distance: Float!
+  restaurantName: String!
+  categoryName: String!
+}
+
+type PaginatedOrder {
+  total: Int!
+  data: [Order!]!
+}
+
+type PaginatedOrderDetails {
+  total: Int!
+  data: [OrderDetail!]!
+}
+
 type Query {
   sayHello: String!
   findAllUsers(page: Int, limit: Int): PaginatedUser!
+  findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
-  notification(id: Int!): Notification!
-  map(id: Int!): Map!
+  sendNotification: String!
+  findByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
+  searchPlace(input: String!): GoongAutoCompleteResult!
+  reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
+  direction(from: String!, to: String!): GoongDirectionResult!
+  searchAddress(input: String!): PlaceDetails!
   findAllAddresses(page: Int, limit: Int): PaginatedAddress!
   findOneAddress(id: Int!): String!
+  nearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearestAdress!]!
   categories: [Category!]!
   category(id: Int!): Category!
-  discount(id: Int!): Discount!
-  menus: [Menu!]!
-  menu(id: Int!): Menu!
-  order(id: Int!): Order!
-  orderDetails: [OrderDetail!]!
-  orderDetail(id: Int!): OrderDetail!
-  payment(id: Int!): Payment!
+  findCategoriesByRestaurantId(restaurantId: Int!): [Category!]!
   restaurants: [Restaurant!]!
   restaurant(id: Int!): Restaurant!
+  searchNearestRestaurants(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
+  findAllDiscounts(page: Int, limit: Int): PaginatedDiscount!
+  findDiscountById(id: Int!): Discount!
+  findDiscountByCode(code: String!): Discount!
+  menus: [Menu!]!
+  menu(id: Int!): Menu!
+  findMenusByCategoryId(categoryId: Int!): [Menu!]!
+  searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  findAllOrders(page: Int, limit: Int): PaginatedOrder!
+  findOrderById(id: Int!): Order!
+  findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
+  findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
+  findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
+  findOneDetailById(id: Int!): OrderDetail!
+  findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!
+  payment(id: Int!): Payment!
   revenueReport(id: Int!): RevenueReport!
   review(id: Int!): Review!
 }
@@ -268,18 +393,15 @@ type Mutation {
   login(loginDto: CreateAuthInput!): AuthPayload!
   verifyLogin(token: String!): AuthPayload!
   createNotification(createNotificationInput: CreateNotificationInput!): Notification!
-  updateNotification(updateNotificationInput: UpdateNotificationInput!): Notification!
-  removeNotification(id: Int!): Notification!
-  sendNotification: String!
-  createMap(createMapInput: CreateMapInput!): Map!
-  updateMap(updateMapInput: UpdateMapInput!): Map!
-  removeMap(id: Int!): Map!
   createAddress(createAddressInput: CreateAddressInput!): Address!
   updateAddress(updateAddressInput: UpdateAddressInput!): Address!
   removeAddress(id: Int!): Address!
   createCategory(createCategoryInput: CreateCategoryInput!): Category!
   updateCategory(updateCategoryInput: UpdateCategoryInput!): Category!
   removeCategory(id: Int!): Category!
+  createRestaurant(createRestaurantInput: CreateRestaurantInput!): Restaurant!
+  updateRestaurant(updateRestaurantInput: UpdateRestaurantInput!): Restaurant!
+  removeRestaurant(id: Int!): Restaurant!
   createDiscount(createDiscountInput: CreateDiscountInput!): Discount!
   updateDiscount(updateDiscountInput: UpdateDiscountInput!): Discount!
   removeDiscount(id: Int!): Discount!
@@ -292,12 +414,10 @@ type Mutation {
   createOrderDetail(createOrderDetailInput: CreateOrderDetailInput!): OrderDetail!
   updateOrderDetail(updateOrderDetailInput: UpdateOrderDetailInput!): OrderDetail!
   removeOrderDetail(id: Int!): OrderDetail!
-  createPayment(createPaymentInput: CreatePaymentInput!): Payment!
+  createPaypalOrder(createPaymentInput: CreatePaymentInput!): String!
+  capturePaypalOrder(orderId: String!): Boolean!
   updatePayment(updatePaymentInput: UpdatePaymentInput!): Payment!
   removePayment(id: Int!): Payment!
-  createRestaurant(createRestaurantInput: CreateRestaurantInput!): Restaurant!
-  updateRestaurant(updateRestaurantInput: UpdateRestaurantInput!): Restaurant!
-  removeRestaurant(id: Int!): Restaurant!
   createRevenueReport(createRevenueReportInput: CreateRevenueReportInput!): RevenueReport!
   updateRevenueReport(updateRevenueReportInput: UpdateRevenueReportInput!): RevenueReport!
   removeRevenueReport(id: Int!): RevenueReport!
@@ -350,41 +470,33 @@ input CreateAuthInput {
 }
 
 input CreateNotificationInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateNotificationInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreateMapInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateMapInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  title: String!
+  content: String!
+  type: String!
+  isRead: String!
+  userId: Int!
 }
 
 input CreateAddressInput {
   label: String
-  formatAdress: String
-  latitude: Int!
-  longitude: Int!
-  googleId: String
+  province: String
+  district: String
+  ward: String
+  street: String
+  latitude: Float!
+  longitude: Float!
+  placeId: String
 }
 
 input UpdateAddressInput {
   label: String
-  formatAdress: String
-  latitude: Int
-  longitude: Int
-  googleId: String
+  province: String
+  district: String
+  ward: String
+  street: String
+  latitude: Float
+  longitude: Float
+  placeId: String
   id: Int!
 }
 
@@ -404,93 +516,6 @@ input UpdateCategoryInput {
   restaurantId: Int
 
   """ID danh mục cần cập nhật"""
-  id: Int!
-}
-
-input CreateDiscountInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateDiscountInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreateMenuInput {
-  """Tên món ăn"""
-  name: String!
-
-  """Mô tả món ăn"""
-  description: String
-
-  """Giá món ăn"""
-  price: Int!
-
-  """URL hình ảnh"""
-  imageUrl: String
-
-  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
-  available: String!
-
-  """ID danh mục"""
-  categoryId: Int!
-}
-
-input UpdateMenuInput {
-  """Tên món ăn"""
-  name: String
-
-  """Mô tả món ăn"""
-  description: String
-
-  """Giá món ăn"""
-  price: Int
-
-  """URL hình ảnh"""
-  imageUrl: String
-
-  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
-  available: String
-
-  """ID danh mục"""
-  categoryId: Int
-
-  """ID món ăn cần cập nhật"""
-  id: Int!
-}
-
-input CreateOrderInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateOrderInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreateOrderDetailInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdateOrderDetailInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
-}
-
-input CreatePaymentInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
-}
-
-input UpdatePaymentInput {
-  """Example field (placeholder)"""
-  exampleField: Int
   id: Int!
 }
 
@@ -517,6 +542,127 @@ input UpdateRestaurantInput {
   id: Int!
 }
 
+input CreateDiscountInput {
+  code: String
+  description: String
+  percentage: Float
+  minOrderValue: Int
+  count: Int
+  startTime: DateTime
+  endTime: DateTime
+  status: String
+}
+
+input UpdateDiscountInput {
+  code: String
+  description: String
+  percentage: Float
+  minOrderValue: Int
+  count: Int
+  startTime: DateTime
+  endTime: DateTime
+  status: String
+  id: Int!
+}
+
+input CreateMenuInput {
+  """Tên món ăn"""
+  name: String!
+
+  """Mô tả món ăn"""
+  description: String
+
+  """Giá món ăn"""
+  price: Int!
+
+  """Giá món ăn"""
+  quantity: Int!
+
+  """URL hình ảnh"""
+  imageUrl: String
+
+  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
+  available: String!
+
+  """ID danh mục"""
+  categoryId: Int!
+}
+
+input UpdateMenuInput {
+  """Tên món ăn"""
+  name: String
+
+  """Mô tả món ăn"""
+  description: String
+
+  """Giá món ăn"""
+  price: Int
+
+  """Giá món ăn"""
+  quantity: Int
+
+  """URL hình ảnh"""
+  imageUrl: String
+
+  """Trạng thái món ăn ('available' hoặc 'unavailable')"""
+  available: String
+
+  """ID danh mục"""
+  categoryId: Int
+
+  """ID món ăn cần cập nhật"""
+  id: Int!
+}
+
+input CreateOrderInput {
+  totalPrice: Int
+  status: String
+  shippingFee: Int
+  userId: Int
+  restaurantId: Int
+  discountId: Int
+  addressId: Int
+}
+
+input UpdateOrderInput {
+  totalPrice: Int
+  status: String
+  shippingFee: Int
+  userId: Int
+  restaurantId: Int
+  discountId: Int
+  addressId: Int
+  id: Int!
+}
+
+input CreateOrderDetailInput {
+  quantity: Int
+  note: String
+  orderId: Int
+  menuId: Int
+}
+
+input UpdateOrderDetailInput {
+  quantity: Int
+  note: String
+  orderId: Int
+  menuId: Int
+  id: Int!
+}
+
+input CreatePaymentInput {
+  paymentMethod: String!
+  orderId: Int!
+  status: String!
+}
+
+input UpdatePaymentInput {
+  paymentMethod: String
+  orderId: Int
+  status: String
+  id: Int!
+}
+
 input CreateRevenueReportInput {
   """Example field (placeholder)"""
   exampleField: Int!
@@ -537,8 +683,4 @@ input UpdateReviewInput {
   """Example field (placeholder)"""
   exampleField: Int
   id: Int!
-}
-
-type Subscription {
-  otpSent: String!
 }

@@ -1,8 +1,9 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Float } from '@nestjs/graphql';
 import { RestaurantService } from './restaurant.service';
 import { Restaurant } from '../../entities/restaurant.entity';
 import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
+import { NearestRestaurant } from './dto/output/NearestRestaurant';
 
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
@@ -15,7 +16,7 @@ export class RestaurantResolver {
     return await this.restaurantService.create(createRestaurantInput);
   }
 
-  @Query(() => [Restaurant], { name: 'restaurants' }) // ✅ Đổi tên tránh trùng lặp
+  @Query(() => [Restaurant], { name: 'restaurants' })
   async findAll(): Promise<Restaurant[]> {
     return await this.restaurantService.findAll();
   }
@@ -42,5 +43,20 @@ export class RestaurantResolver {
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Restaurant> {
     return await this.restaurantService.remove(id);
+  }
+
+  @Query(() => [NearestRestaurant])
+  async searchNearestRestaurants(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('keyword') keyword: string,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
+  ): Promise<NearestRestaurant[]> {
+    return this.restaurantService.findNearestRestaurantsByName(
+      latitude,
+      longitude,
+      keyword,
+      limit,
+    );
   }
 }

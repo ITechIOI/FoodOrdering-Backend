@@ -8,28 +8,48 @@ import { UpdatePaymentInput } from './dto/update-payment.input';
 export class PaymentResolver {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Mutation(() => Payment)
-  createPayment(@Args('createPaymentInput') createPaymentInput: CreatePaymentInput) {
-    return this.paymentService.create(createPaymentInput);
+  // Phương thức này dùng để tạo thanh toán trên paypal
+  @Mutation(() => String)
+  async createPaypalOrder(
+    @Args('createPaymentInput') createPaymentInput: CreatePaymentInput,
+  ): Promise<string> {
+    const order = await this.paymentService.createPayment(createPaymentInput);
+
+    const approvalUrl = order.links.find(
+      (link) => link.rel === 'approve',
+    )?.href;
+    // console.log('Approval URL: ', approvalUrl);
+    return approvalUrl; // Gửi URL này về frontend để redirect
+  }
+
+  @Mutation(() => Boolean)
+  async capturePaypalOrder(@Args('orderId') orderId: string): Promise<boolean> {
+    const result = await this.paymentService.captureOrder(orderId);
+    return result.status === 'completed';
   }
 
   @Query(() => [Payment], { name: 'payment' })
-  findAll() {
-    return this.paymentService.findAll();
+  async findAll() {
+    return await this.paymentService.findAll();
   }
 
   @Query(() => Payment, { name: 'payment' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.paymentService.findOne(id);
+  async findOne(@Args('id', { type: () => Int }) id: number) {
+    return await this.paymentService.findOne(id);
   }
 
   @Mutation(() => Payment)
-  updatePayment(@Args('updatePaymentInput') updatePaymentInput: UpdatePaymentInput) {
-    return this.paymentService.update(updatePaymentInput.id, updatePaymentInput);
+  async updatePayment(
+    @Args('updatePaymentInput') updatePaymentInput: UpdatePaymentInput,
+  ) {
+    return await this.paymentService.update(
+      updatePaymentInput.id,
+      updatePaymentInput,
+    );
   }
 
   @Mutation(() => Payment)
-  removePayment(@Args('id', { type: () => Int }) id: number) {
-    return this.paymentService.remove(id);
+  async removePayment(@Args('id', { type: () => Int }) id: number) {
+    return await this.paymentService.remove(id);
   }
 }

@@ -43,4 +43,12 @@ export class CategoryResolver {
   ): Promise<Category> {
     return this.categoryService.remove(id);
   }
+
+  // find categories by restaurantId
+  @Query(() => [Category])
+  async findCategoriesByRestaurantId(
+    @Args('restaurantId', { type: () => Int }) restaurantId: number,
+  ): Promise<Category[]> {
+    return this.categoryService.findCategoriesByRestaurantId(restaurantId);
+  }
 }

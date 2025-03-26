@@ -84,7 +84,44 @@ export class RestaurantService {
   async remove(id: number): Promise<Restaurant> {
     const restaurant = await this.findOne(id);
 
-    restaurant.deletedAt = new Date(); // Đánh dấu là đã xóa (soft delete)
+    restaurant.deletedAt = new Date();
     return await this.restaurantRepository.save(restaurant);
+  }
+
+  async findNearestRestaurantsByName(
+    userLat: number,
+    userLng: number,
+    keyword: string,
+    limit = 10,
+  ): Promise<(Restaurant & { distance: number })[]> {
+    const query = this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.address', 'address')
+      .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
+      .andWhere(
+        'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+      )
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('address.deletedAt IS NULL')  
+      .addSelect(
+        `
+        6371 * acos(
+          cos(radians(:userLat)) * cos(radians(address.latitude)) *
+          cos(radians(address.longitude) - radians(:userLng)) +
+          sin(radians(:userLat)) * sin(radians(address.latitude))
+        )
+      `,
+        'distance',
+      )
+      .orderBy('distance', 'ASC')
+      .limit(limit)
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    return entities.map((restaurant, index) => ({
+      ...restaurant,
+      distance: parseFloat(raw[index].distance),
+    }));
   }
 }

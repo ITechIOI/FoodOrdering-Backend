@@ -83,4 +83,21 @@ export class CategoryService {
     await this.categoryRepository.save(category);
     return category;
   }
+
+  async findCategoriesByRestaurantId(
+    restaurantId: number,
+  ): Promise<Category[]> {
+    const categories = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.restaurant', 'restaurant')
+      .where('category.restaurantId = :restaurantId', { restaurantId })
+      .andWhere('category.deletedAt IS NULL')
+      .getMany();
+    if (!categories) {
+      throw new NotFoundException(
+        `Categories with restaurant ID ${restaurantId} not found`,
+      );
+    }
+    return categories;
+  }
 }

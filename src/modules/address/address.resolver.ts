@@ -1,11 +1,26 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  Float,
+  ObjectType,
+  Field,
+} from '@nestjs/graphql';
 import { AddressService } from './address.service';
 import { Address } from '../../entities/address.entity';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
 import { createPaginatedType } from 'src/utils/paginated';
+import { Restaurant } from 'src/entities/restaurant.entity';
 
 const PaginatedAddress = createPaginatedType(Address, 'PaginatedAddress');
+@ObjectType()
+class NearestAdress extends Address {
+  @Field(() => Float)
+  distance: number;
+}
 
 @Resolver(() => Address)
 export class AddressResolver {
@@ -45,5 +60,32 @@ export class AddressResolver {
   @Mutation(() => Address)
   removeAddress(@Args('id', { type: () => Int }) id: number) {
     return this.addressService.remove(id);
+  }
+
+  // Tìm 20 cửa hàng gần người dùng nhất
+  // @Query(() => [Address])
+  // async nearestRestaurants(
+  //   @Args('latitude', { type: () => Float }) latitude: number,
+  //   @Args('longitude', { type: () => Float }) longitude: number,
+  //   @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  // ) {
+  //   return this.addressService.findNearestRestaurants(
+  //     latitude,
+  //     longitude,
+  //     limit,
+  //   );
+  // }
+
+  @Query(() => [NearestAdress])
+  async nearestRestaurants(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  ): Promise<NearestAdress[]> {
+    return this.addressService.findNearestRestaurants(
+      latitude,
+      longitude,
+      limit,
+    );
   }
 }

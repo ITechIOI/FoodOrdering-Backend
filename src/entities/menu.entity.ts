@@ -19,6 +19,10 @@ export class Menu extends AbstractEntity<Menu> {
   @Column({ nullable: true })
   price: number;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true })
+  quantity: number;
+
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   imageUrl: string;
