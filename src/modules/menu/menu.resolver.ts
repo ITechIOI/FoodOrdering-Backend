@@ -4,7 +4,11 @@ import { Menu } from '../../entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
 import { NearbyMenuItem } from './dto/output/NearbyMenuItem';
-
+import { createPaginatedType } from 'src/utils/paginated';
+const PaginatedMenuResponse = createPaginatedType(
+  Menu,
+  'PaginatedMenuResponse',
+);
 @Resolver(() => Menu)
 export class MenuResolver {
   constructor(private readonly menuService: MenuService) {}
@@ -16,9 +20,12 @@ export class MenuResolver {
     return await this.menuService.create(createMenuInput);
   }
 
-  @Query(() => [Menu], { name: 'menus' }) // ✅ Đổi name để tránh trùng với query findOne
-  async findAll(): Promise<Menu[]> {
-    return await this.menuService.findAll();
+  @Query(() => PaginatedMenuResponse, { name: 'menus' }) // ✅ Phân trang
+  async findAll(
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ) {
+    return await this.menuService.findAll(page, limit);
   }
 
   @Query(() => Menu, { name: 'menu' })

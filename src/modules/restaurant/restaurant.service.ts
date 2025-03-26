@@ -23,20 +23,25 @@ export class RestaurantService {
     const { addressId, ownerId, ...data } = createRestaurantInput;
 
     const address = await this.addressService.findOneAddress(addressId);
+    if (!address) {
+      throw new NotFoundException(`Address with ID ${addressId} not found`);
+    }
 
     const owner = await this.userService.findOneById(ownerId);
     if (!owner) {
       throw new NotFoundException(`Owner with ID ${ownerId} not found`);
     }
 
-    const newRestaurant = this.restaurantRepository.create({
+    // Chỉ lấy địa chỉ đầu tiên trong danh sách nếu có nhiều
+    const restaurant = this.restaurantRepository.create({
       ...data,
       address,
       owner,
     });
 
-    return await this.restaurantRepository.save(newRestaurant);
+    return await this.restaurantRepository.save(restaurant);
   }
+
   async findAll(
     page: number,
     limit: number,
@@ -68,9 +73,15 @@ export class RestaurantService {
     const restaurant = await this.findOne(id);
 
     if (updateRestaurantInput.addressId) {
-      restaurant.address = await this.addressService.findOneAddress(
+      const address = await this.addressService.findOneAddress(
         updateRestaurantInput.addressId,
       );
+      if (!address) {
+        throw new NotFoundException(
+          `Address with ID ${updateRestaurantInput.addressId} not found`,
+        );
+      }
+      restaurant.address = address;
     }
 
     if (updateRestaurantInput.ownerId) {
@@ -110,7 +121,7 @@ export class RestaurantService {
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
       .andWhere('restaurant.deletedAt IS NULL')
-      .andWhere('address.deletedAt IS NULL')  
+      .andWhere('address.deletedAt IS NULL')
       .addSelect(
         `
         6371 * acos(

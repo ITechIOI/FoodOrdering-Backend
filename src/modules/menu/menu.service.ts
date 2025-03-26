@@ -5,6 +5,7 @@ import { Menu } from 'src/entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
 import { CategoryService } from '../category/category.service';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class MenuService {
@@ -36,8 +37,14 @@ export class MenuService {
     return this.menuRepository.save(menu);
   }
 
-  async findAll(): Promise<Menu[]> {
-    return this.menuRepository.find({ relations: ['category', 'orderDetail'] });
+  async findAll(page: number, limit: number): Promise<PaginatedResponse<Menu>> {
+    const [data, total] = await this.menuRepository.findAndCount({
+      relations: ['category', 'orderDetail'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return { data, total };
   }
 
   async findOne(id: number): Promise<Menu> {

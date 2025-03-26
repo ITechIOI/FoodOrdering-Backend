@@ -263,6 +263,11 @@ type GoongDirectionResult {
   duration: String!
 }
 
+type PaginatedCategoryResponse {
+  total: Int!
+  data: [Category!]!
+}
+
 type NearestRestaurant {
   id: Int!
   createdAt: DateTime!
@@ -282,6 +287,11 @@ type NearestRestaurant {
   order: [Order!]
   owner: Users
   distance: Float!
+}
+
+type PaginatedRestaurantResponse {
+  total: Int!
+  data: [Restaurant!]!
 }
 
 type PaginatedAddress {
@@ -333,6 +343,11 @@ type NearbyMenuItem {
   categoryName: String!
 }
 
+type PaginatedMenuResponse {
+  total: Int!
+  data: [Menu!]!
+}
+
 type PaginatedOrder {
   total: Int!
   data: [Order!]!
@@ -358,16 +373,16 @@ type Query {
   findAllAddresses(page: Int, limit: Int): PaginatedAddress!
   findOneAddress(id: Int!): String!
   nearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearestAdress!]!
-  categories: [Category!]!
+  categories(page: Int, limit: Int): PaginatedCategoryResponse!
   category(id: Int!): Category!
   findCategoriesByRestaurantId(restaurantId: Int!): [Category!]!
-  restaurants: [Restaurant!]!
+  restaurants(page: Int, limit: Int): PaginatedRestaurantResponse!
   restaurant(id: Int!): Restaurant!
   searchNearestRestaurants(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
   findAllDiscounts(page: Int, limit: Int): PaginatedDiscount!
   findDiscountById(id: Int!): Discount!
   findDiscountByCode(code: String!): Discount!
-  menus: [Menu!]!
+  menus(page: Int, limit: Int): PaginatedMenuResponse!
   menu(id: Int!): Menu!
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
   searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
