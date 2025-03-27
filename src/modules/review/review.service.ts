@@ -5,6 +5,7 @@ import { CreateReviewInput } from './dto/create-review.input';
 import { UpdateReviewInput } from './dto/update-review.input';
 import { OrderService } from '../order/order.service';
 import { Review } from 'src/entities/review.entity';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class ReviewService {
@@ -30,14 +31,23 @@ export class ReviewService {
     return this.reviewRepository.save(review);
   }
 
-  async findAll(): Promise<Review[]> {
-    return this.reviewRepository.find({ relations: ['order', 'complaint'] });
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Review>> {
+    const [data, total] = await this.reviewRepository.findAndCount({
+      relations: ['order'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return { data, total };
   }
 
   async findOne(id: number): Promise<Review> {
     const review = await this.reviewRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['order', 'complaint'],
+      relations: ['order'],
     });
 
     if (!review) {
@@ -56,10 +66,9 @@ export class ReviewService {
     return this.reviewRepository.save(review);
   }
 
-  async remove(id: number): Promise<boolean> {
+  async remove(id: number): Promise<Review> {
     const review = await this.findOne(id);
-    review.deletedAt = new Date(); // Đánh dấu thời điểm bị xóa
-    await this.reviewRepository.save(review);
-    return true;
+    review.deletedAt = new Date();
+    return await this.reviewRepository.save(review);
   }
 }

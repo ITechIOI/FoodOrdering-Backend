@@ -358,6 +358,11 @@ type PaginatedOrderDetails {
   data: [OrderDetail!]!
 }
 
+type PaginatedReviewResponse {
+  total: Int!
+  data: [Review!]!
+}
+
 type PaginatedComplaintResponse {
   total: Int!
   data: [Complaint!]!
