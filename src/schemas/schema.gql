@@ -358,6 +358,11 @@ type PaginatedOrderDetails {
   data: [OrderDetail!]!
 }
 
+type PaginatedRevenueReportResponse {
+  total: Int!
+  data: [RevenueReport!]!
+}
+
 type PaginatedReviewResponse {
   total: Int!
   data: [Review!]!
@@ -407,6 +412,7 @@ type Query {
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!
   payment(id: Int!): Payment!
+  revenueReports(page: Int, limit: Int): PaginatedRevenueReportResponse!
   revenueReport(id: Int!): RevenueReport!
 }
 
@@ -730,12 +736,22 @@ input UpdatePaymentInput {
 }
 
 input CreateRevenueReportInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  month: Int
+  year: Int
+  totalOrders: Int
+  totalRevenue: Int
+  cancalledOrders: Int
+  averageRating: Int
+  restaurantId: Int!
 }
 
 input UpdateRevenueReportInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  month: Int
+  year: Int
+  totalOrders: Int
+  totalRevenue: Int
+  cancalledOrders: Int
+  averageRating: Int
+  restaurantId: Int
   id: Int!
 }
