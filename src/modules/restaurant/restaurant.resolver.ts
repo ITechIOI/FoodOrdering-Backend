@@ -4,7 +4,11 @@ import { Restaurant } from '../../entities/restaurant.entity';
 import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 import { NearestRestaurant } from './dto/output/NearestRestaurant';
-
+import { createPaginatedType } from 'src/utils/paginated';
+const PaginatedRestaurantResponse = createPaginatedType(
+  Restaurant,
+  'PaginatedRestaurantResponse',
+);
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
@@ -16,11 +20,13 @@ export class RestaurantResolver {
     return await this.restaurantService.create(createRestaurantInput);
   }
 
-  @Query(() => [Restaurant], { name: 'restaurants' })
-  async findAll(): Promise<Restaurant[]> {
-    return await this.restaurantService.findAll();
+  @Query(() => PaginatedRestaurantResponse, { name: 'restaurants' }) // ✅ Phân trang
+  async findAll(
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ) {
+    return await this.restaurantService.findAll(page, limit);
   }
-
   @Query(() => Restaurant, { name: 'restaurant' })
   async findOne(
     @Args('id', { type: () => Int }) id: number,

@@ -3,33 +3,52 @@ import { RevenueReportService } from './revenue_report.service';
 import { RevenueReport } from '../../entities/revenue_report.entity';
 import { CreateRevenueReportInput } from './dto/create-revenue_report.input';
 import { UpdateRevenueReportInput } from './dto/update-revenue_report.input';
+import { createPaginatedType } from 'src/utils/paginated';
 
+const PaginatedRevenueReportResponse = createPaginatedType(
+  RevenueReport,
+  'PaginatedRevenueReportResponse',
+);
 @Resolver(() => RevenueReport)
 export class RevenueReportResolver {
   constructor(private readonly revenueReportService: RevenueReportService) {}
 
   @Mutation(() => RevenueReport)
-  createRevenueReport(@Args('createRevenueReportInput') createRevenueReportInput: CreateRevenueReportInput) {
-    return this.revenueReportService.create(createRevenueReportInput);
+  async createRevenueReport(
+    @Args('createRevenueReportInput')
+    createRevenueReportInput: CreateRevenueReportInput,
+  ): Promise<RevenueReport> {
+    return await this.revenueReportService.create(createRevenueReportInput);
   }
 
-  @Query(() => [RevenueReport], { name: 'revenueReport' })
-  findAll() {
-    return this.revenueReportService.findAll();
+  @Query(() => PaginatedRevenueReportResponse, { name: 'revenueReports' })
+  async findAll(
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ) {
+    return await this.revenueReportService.findAll(page, limit);
   }
 
   @Query(() => RevenueReport, { name: 'revenueReport' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.revenueReportService.findOne(id);
+  async findOne(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<RevenueReport> {
+    return await this.revenueReportService.findOne(id);
   }
 
   @Mutation(() => RevenueReport)
-  updateRevenueReport(@Args('updateRevenueReportInput') updateRevenueReportInput: UpdateRevenueReportInput) {
-    return this.revenueReportService.update(updateRevenueReportInput.id, updateRevenueReportInput);
+  async updateRevenueReport(
+    @Args('updateRevenueReportInput')
+    updateRevenueReportInput: UpdateRevenueReportInput,
+  ): Promise<RevenueReport> {
+    return await this.revenueReportService.update(
+      updateRevenueReportInput.id,
+      updateRevenueReportInput,
+    );
   }
 
   @Mutation(() => RevenueReport)
-  removeRevenueReport(@Args('id', { type: () => Int }) id: number) {
-    return this.revenueReportService.remove(id);
+  async removeRevenueReport(@Args('id', { type: () => Int }) id: number) {
+    return await this.revenueReportService.remove(id);
   }
 }

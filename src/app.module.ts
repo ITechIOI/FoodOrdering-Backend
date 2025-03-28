@@ -30,6 +30,7 @@ import { Transport } from '@nestjs/microservices';
 import { CacheWorkerModule } from './modules/cache_worker/cache_worker.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheService } from './common/cache/cache.service';
+import { ComplaintModule } from './modules/complaint/complaint.module';
 @Module({
   imports: [
     CacheModule.registerAsync({
@@ -116,6 +117,7 @@ import { CacheService } from './common/cache/cache.service';
     RolesModule,
     NotificationModule,
     CloudinaryModule,
+    ComplaintModule,
     MapModule,
     AddressModule,
     CategoryModule,

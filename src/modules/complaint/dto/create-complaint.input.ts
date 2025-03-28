@@ -1,7 +1,22 @@
-import { InputType, Int, Field } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateComplaintInput {
-  @Field(() => Int, { description: 'Example field (placeholder)' })
-  exampleField: number;
+  @Field(() => String, { nullable: true })
+  content?: string;
+
+  @Field(() => String, { nullable: true })
+  imageUrl?: string;
+
+  @Field(() => String, { nullable: true })
+  response?: string;
+
+  @Field(() => Int)
+  sellerId: number;
+
+  @Field(() => Int)
+  adminId: number;
+
+  @Field(() => Number)
+  reviewId: number;
 }
