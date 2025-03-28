@@ -408,6 +408,11 @@ type Query {
   menu(id: Int!): Menu!
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
   searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
+  findAllOrders(page: Int, limit: Int): PaginatedOrder!
+  findOrderById(id: Int!): Order!
+  findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
+  findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!
@@ -416,9 +421,12 @@ type Query {
   revenueReport(id: Int!): RevenueReport!
 }
 
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
 type Mutation {
   createUser(createUserInput: CreateUserInput!): Users!
-  uploadAvatar(id: Int!, file: Upload!): String!
+  uploadAvatar(id: Int!, file: Upload!): Users!
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
@@ -476,9 +484,6 @@ input CreateUserInput {
   otpCode: String
   otpExpiresAt: DateTime
 }
-
-"""The `Upload` scalar type represents a file upload."""
-scalar Upload
 
 input UpdateUserInput {
   name: String

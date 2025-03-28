@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Restaurant } from '../../entities/restaurant.entity';
@@ -6,6 +6,8 @@ import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 import { AddressService } from '../address/address.service';
 import { UsersService } from '../users/users.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { CacheService } from 'src/common/cache/cache.service';
 import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
@@ -13,9 +15,10 @@ export class RestaurantService {
   constructor(
     @InjectRepository(Restaurant)
     private restaurantRepository: Repository<Restaurant>,
-
     private readonly addressService: AddressService,
     private readonly userService: UsersService,
+    @Inject('REDIS_SERVICE') private readonly cacheClient: ClientProxy,
+    private readonly cacheService: CacheService,
   ) {}
   async create(
     createRestaurantInput: CreateRestaurantInput,
@@ -112,6 +115,16 @@ export class RestaurantService {
     keyword: string,
     limit = 10,
   ): Promise<(Restaurant & { distance: number })[]> {
+    // const cacheKey = `nearest_restaurants:${userLat}:${userLng}:${keyword}:${limit}`;
+
+    // const cacheRestaurantString = await this.cacheService.getCache(cacheKey);
+    // if (cacheRestaurantString) {
+    //   console.log('[CACHE] recommended restaurant HIT:', cacheKey);
+    //   return JSON.parse(cacheRestaurantString);
+    // }
+
+    // console.log('Cache recommended restaurant miss:', cacheKey);
+
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
@@ -137,9 +150,16 @@ export class RestaurantService {
 
     const { entities, raw } = await query.getRawAndEntities();
 
-    return entities.map((restaurant, index) => ({
+    const result = entities.map((restaurant, index) => ({
       ...restaurant,
       distance: parseFloat(raw[index].distance),
     }));
+
+    // await this.cacheClient.emit('restaurant.cache.set', {
+    //   cacheKey,
+    //   data: result,
+    // });
+
+    return result;
   }
 }
