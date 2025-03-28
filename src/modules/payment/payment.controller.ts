@@ -60,6 +60,12 @@ export class PaymentController {
     );
   }
 
+  // @Get('test')
+  // handleTest() {
+  //   this.rabbitClient.emit('payment_completed', 'test');
+  //   return 'test';
+  // }
+
   @Get('cancel')
   handleCancel(@Res() res: Response) {
     return res.sendFile(

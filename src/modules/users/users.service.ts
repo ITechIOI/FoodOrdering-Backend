@@ -125,11 +125,13 @@ export class UsersService {
 
   async updateAvatar(id: number, file: FileUpload) {
     const user = await this.findOneById(id);
-
+    console.log('User found:', user);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    //  / console.log('User found:', user.avatar);
     const oldPublicId = user.avatar.split(' ')[1];
+    console.log('User found:', oldPublicId);
     const deleteOldImage =
       await this.cloudinaryService.deleteImage(oldPublicId);
     console.log('Delete old image:', deleteOldImage);
@@ -149,9 +151,8 @@ export class UsersService {
         ...user,
         avatar: imageUrl,
       });
-      this.userRepository.save(newUser);
+      return this.userRepository.save(newUser);
       // const saveUser = await this.userRepository.save(newUser);
-      return uploadResponse.secure_url;
     } catch (error) {
       console.error('Upload error:', error);
       throw new InternalServerErrorException(error.message);
@@ -171,8 +172,8 @@ export class UsersService {
     try {
       const cacheKey = `user:detail:${id}`;
       const cacheUserString = await this.cacheService.getCache(cacheKey);
-      console.log('Raw data', cacheUserString);
-      await this.cacheClient.emit('user.cache.set', cacheUserString);
+      // console.log('Raw data', cacheUserString);
+
       if (cacheUserString) {
         console.log('[CACHE] HIT:', cacheKey);
         return JSON.parse(cacheUserString);
@@ -183,7 +184,6 @@ export class UsersService {
         where: { id, deletedAt: IsNull() },
         relations: ['role'],
       });
-
       if (!user) {
         throw new NotFoundException('User not found');
       }

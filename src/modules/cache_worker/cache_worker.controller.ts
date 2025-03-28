@@ -34,4 +34,26 @@ export class CacheWorkerController {
     await this.cacheService.setCache(cacheKey, message, 3000);
     console.log(`[CACHE] SET from MQ: ${cacheKey}`);
   }
+
+  @EventPattern('restaurant.cache.set')
+  async handleSetRecommendedRestaurant(
+    @Payload() message: { cacheKey: string; data: any },
+  ) {
+    try {
+      const { cacheKey, data } = message;
+
+      if (!cacheKey || !data || !Array.isArray(data)) {
+        console.warn('[CACHE] Invalid cache set event received:', message);
+        return;
+      }
+
+      console.log(`[CACHE] Setting cache for key: ${cacheKey}`);
+
+      await this.cacheService.setCache(cacheKey, JSON.stringify(data), 3000);
+
+      console.log(`[CACHE] Cache set successfully for key: ${cacheKey}`);
+    } catch (error) {
+      console.error('[CACHE] Error setting cache:', error);
+    }
+  }
 }

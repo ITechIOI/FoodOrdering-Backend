@@ -5,15 +5,22 @@ import { Menu } from 'src/entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
 import { CategoryService } from '../category/category.service';
+import { ConfigService } from '@nestjs/config';
+import { FileUpload } from 'graphql-upload-minimal';
+import * as FormData from 'form-data';
+import axios from 'axios';
 
 @Injectable()
 export class MenuService {
+  private fastUrl;
   constructor(
     @InjectRepository(Menu)
     private readonly menuRepository: Repository<Menu>,
-
+    private readonly configService: ConfigService,
     private readonly categoryService: CategoryService,
-  ) {}
+  ) {
+    this.fastUrl = this.configService.get<string>('FASTAPI_URL') || '';
+  }
 
   async create(createMenuInput: CreateMenuInput): Promise<Menu> {
     const { name, description, price, imageUrl, available, categoryId } =
@@ -161,5 +168,44 @@ export class MenuService {
       categoryName: raw[index].categoryName,
       distance: parseFloat(raw[index].distance),
     }));
+  }
+
+  // get the list of menus by fast api that has the nearest distance to the user by limit
+  async findMenuByImage(file: FileUpload, limit: number = 10): Promise<Menu[]> {
+    const { createReadStream, filename, mimetype } = file;
+
+    const stream = createReadStream();
+    const formData = new FormData();
+
+    formData.append('file', stream, {
+      filename,
+      contentType: mimetype,
+    });
+
+    formData.append('limit', limit.toString());
+
+    try {
+      const response = await axios.post(
+        `${this.fastUrl}/menu/predict/score`,
+        formData,
+        {
+          headers: formData.getHeaders(),
+        },
+      );
+
+      let menu: Menu[] = [];
+      for (let i = 0; i < response.data.length; i++) {
+        const menuItem = await this.findOne(response.data[i].id);
+       // console.log('menuItem', menuItem);
+        menu.push(menuItem);
+      }
+      return menu;
+    } catch (error) {
+      console.error(
+        '❌ Upload to FastAPI failed:',
+        error?.response?.data || error.message,
+      );
+      throw new Error('FastAPI upload failed');
+    }
   }
 }

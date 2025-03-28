@@ -24,7 +24,7 @@ export class EmailService implements INotification {
       from: this.configService.get<string>('MAIL_FROM'),
       to,
       subject: subject,
-      text: `Mã OTP của bạn là: ${message} (Có hiệu lực trong 1 phút)`,
+      text: message,
     };
 
     await this.transporter.sendMail(mailOptions);

@@ -6,21 +6,18 @@ import { User } from 'src/entities/user.entity';
 import { GraphQLScalarType } from 'graphql';
 import {
   FileUpload,
+  GraphQLUpload,
   GraphQLUpload as GraphQLUploadScalar,
   Upload,
 } from 'graphql-upload-minimal';
 import { createPaginatedType } from 'src/utils/paginated';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
 
 const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
-const GraphQLUpload = new GraphQLScalarType({
-  name: 'Upload',
-  description: 'The `Upload` scalar type represents a file upload.',
-});
+// const GraphQLUpload = new GraphQLScalarType({
+//   name: 'Upload',
+//   description: 'The `Upload` scalar type represents a file upload.',
+// });
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -38,16 +35,13 @@ export class UsersResolver {
     return user;
   }
 
-  @Mutation(() => String)
+  @Mutation(() => User)
   async uploadAvatar(
     @Args('id', { type: () => Int }) id: number,
-    @Args({ name: 'file', type: () => GraphQLUpload }) file: Upload,
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload, // ✅ dùng type đúng
   ): Promise<User> {
-    console.log('File in resolver:', file);
-
-    const resolvedFile = await file.promise;
-    console.log('Resolved file:', resolvedFile);
-    return this.usersService.updateAvatar(id, resolvedFile);
+    console.log('Resolved file:', file); // 👍 chính là file rồi
+    return this.usersService.updateAvatar(id, file); // truyền trực tiếp
   }
 
   @Mutation(() => User)

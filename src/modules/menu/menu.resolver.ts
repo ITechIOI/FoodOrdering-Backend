@@ -4,6 +4,7 @@ import { Menu } from '../../entities/menu.entity';
 import { CreateMenuInput } from './dto/create-menu.input';
 import { UpdateMenuInput } from './dto/update-menu.input';
 import { NearbyMenuItem } from './dto/output/NearbyMenuItem';
+import { FileUpload, GraphQLUpload, Upload } from 'graphql-upload-minimal';
 
 @Resolver(() => Menu)
 export class MenuResolver {
@@ -59,5 +60,13 @@ export class MenuResolver {
       keyword,
       limit,
     );
+  }
+
+  @Query(() => [Menu])
+  async findMenusByImageUrl(
+    @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
+    @Args({ name: 'limit', type: () => Int }) limit: number,
+  ): Promise<Menu[]> {
+    return this.menuService.findMenuByImage(file, limit);
   }
 }
