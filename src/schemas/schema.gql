@@ -392,7 +392,7 @@ type Query {
   findDiscountById(id: Int!): Discount!
   findDiscountByCode(code: String!): Discount!
   findAllAddresses(page: Int, limit: Int): PaginatedAddress!
-  findOneAddress(id: Int!): String!
+  findAddressById(id: Int!): Address!
   nearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearestAdress!]!
   restaurants(page: Int, limit: Int): PaginatedRestaurantResponse!
   restaurant(id: Int!): Restaurant!
@@ -405,14 +405,11 @@ type Query {
   category(id: Int!): Category!
   findCategoriesByRestaurantId(restaurantId: Int!): [Category!]!
   menus(page: Int, limit: Int): PaginatedMenuResponse!
+  findAllNotPaginate: [Menu!]!
   menu(id: Int!): Menu!
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
   searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
   findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
-  findAllOrders(page: Int, limit: Int): PaginatedOrder!
-  findOrderById(id: Int!): Order!
-  findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
-  findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!

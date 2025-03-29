@@ -180,10 +180,13 @@ export class UsersService {
       }
       console.log('Cache miss:', cacheKey);
 
-      const user = await this.userRepository.findOne({
-        where: { id, deletedAt: IsNull() },
-        relations: ['role'],
-      });
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.role', 'role')
+        .where('user.id = :id', { id })
+        .andWhere('user.deletedAt IS NULL')
+        .getOne();
+
       if (!user) {
         throw new NotFoundException('User not found');
       }

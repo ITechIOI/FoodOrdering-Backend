@@ -11,9 +11,7 @@ import { FileUpload } from 'graphql-upload-minimal';
 import * as FormData from 'form-data';
 import axios from 'axios';
 
-import { 
-} from 'src/utils/paginatedType';
-
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class MenuService {
@@ -56,6 +54,19 @@ export class MenuService {
     });
 
     return { data, total };
+  }
+
+  async findAllNotPaginate(): Promise<Menu[]> {
+    const menu = await this.menuRepository
+      .createQueryBuilder('menu')
+      .leftJoinAndSelect('menu.category', 'category')
+      .where('menu.deletedAt IS NULL')
+      .getMany();
+    if (!menu) {
+      throw new NotFoundException(`Menu not found`);
+    }
+    console.log('menu', menu);
+    return menu;
   }
 
   async findOne(id: number): Promise<Menu> {
@@ -207,7 +218,7 @@ export class MenuService {
       let menu: Menu[] = [];
       for (let i = 0; i < response.data.length; i++) {
         const menuItem = await this.findOne(response.data[i].id);
-       // console.log('menuItem', menuItem);
+        // console.log('menuItem', menuItem);
         menu.push(menuItem);
       }
       return menu;

@@ -38,10 +38,10 @@ export class UsersResolver {
   @Mutation(() => User)
   async uploadAvatar(
     @Args('id', { type: () => Int }) id: number,
-    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload, // ✅ dùng type đúng
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload,
   ): Promise<User> {
-    console.log('Resolved file:', file); // 👍 chính là file rồi
-    return this.usersService.updateAvatar(id, file); // truyền trực tiếp
+    console.log('Resolved file:', file);
+    return this.usersService.updateAvatar(id, file);
   }
 
   @Mutation(() => User)
