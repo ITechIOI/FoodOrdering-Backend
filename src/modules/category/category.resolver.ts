@@ -3,7 +3,11 @@ import { CategoryService } from './category.service';
 import { Category } from 'src/entities/category.entity';
 import { CreateCategoryInput } from './dto/create-category.input';
 import { UpdateCategoryInput } from './dto/update-category.input';
-
+import { createPaginatedType } from 'src/utils/paginated';
+const PaginatedCategoryResponse = createPaginatedType(
+  Category,
+  'PaginatedCategoryResponse',
+);
 @Resolver(() => Category)
 export class CategoryResolver {
   constructor(private readonly categoryService: CategoryService) {}
@@ -14,10 +18,12 @@ export class CategoryResolver {
   ): Promise<Category> {
     return this.categoryService.create(createCategoryInput);
   }
-
-  @Query(() => [Category], { name: 'categories' })
-  async findAll(): Promise<Category[]> {
-    return this.categoryService.findAll();
+  @Query(() => PaginatedCategoryResponse, { name: 'categories' }) // ✅ Phân trang
+  async findAll(
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ) {
+    return await this.categoryService.findAll(page, limit);
   }
 
   @Query(() => Category, { name: 'category' })

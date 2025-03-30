@@ -8,6 +8,7 @@ import { AddressService } from '../address/address.service';
 import { UsersService } from '../users/users.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CacheService } from 'src/common/cache/cache.service';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class RestaurantService {
@@ -25,24 +26,35 @@ export class RestaurantService {
     const { addressId, ownerId, ...data } = createRestaurantInput;
 
     const address = await this.addressService.findOneAddress(addressId);
+    if (!address) {
+      throw new NotFoundException(`Address with ID ${addressId} not found`);
+    }
 
     const owner = await this.userService.findOneById(ownerId);
     if (!owner) {
       throw new NotFoundException(`Owner with ID ${ownerId} not found`);
     }
 
-    const newRestaurant = this.restaurantRepository.create({
+    const restaurant = this.restaurantRepository.create({
       ...data,
       address,
       owner,
     });
 
-    return await this.restaurantRepository.save(newRestaurant);
+    return await this.restaurantRepository.save(restaurant);
   }
-  async findAll(): Promise<Restaurant[]> {
-    return await this.restaurantRepository.find({
+
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Restaurant>> {
+    const [data, total] = await this.restaurantRepository.findAndCount({
       relations: ['address', 'owner'],
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { data, total };
   }
 
   async findOne(id: number): Promise<Restaurant> {
@@ -63,9 +75,15 @@ export class RestaurantService {
     const restaurant = await this.findOne(id);
 
     if (updateRestaurantInput.addressId) {
-      restaurant.address = await this.addressService.findOneAddress(
+      const address = await this.addressService.findOneAddress(
         updateRestaurantInput.addressId,
       );
+      if (!address) {
+        throw new NotFoundException(
+          `Address with ID ${updateRestaurantInput.addressId} not found`,
+        );
+      }
+      restaurant.address = address;
     }
 
     if (updateRestaurantInput.ownerId) {

@@ -6,6 +6,7 @@ import { Category } from 'src/entities/category.entity';
 import { IsNull, Repository } from 'typeorm';
 import { RestaurantService } from '../restaurant/restaurant.service';
 import { Restaurant } from 'src/entities/restaurant.entity';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class CategoryService {
@@ -37,8 +38,17 @@ export class CategoryService {
     return this.categoryRepository.save(category);
   }
 
-  async findAll(): Promise<Category[]> {
-    return this.categoryRepository.find({ relations: ['restaurant', 'menu'] });
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Category>> {
+    const [data, total] = await this.categoryRepository.findAndCount({
+      relations: ['restaurant', 'menu'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return { data, total };
   }
 
   async findOne(id: number): Promise<Category> {
