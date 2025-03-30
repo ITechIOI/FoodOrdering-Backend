@@ -42,8 +42,8 @@ export class AddressResolver {
   }
 
   // thuộc tính name trong @Query() sẽ là tên của query trong GraphQL
-  @Query(() => String, { name: 'findOneAddress' })
-  async findOne(@Args('id', { type: () => Int }) id: number) {
+  @Query(() => Address, { name: 'findAddressById' })
+  async findAddressById(@Args('id', { type: () => Int }) id: number) {
     return this.addressService.findOneAddress(id);
   }
 
