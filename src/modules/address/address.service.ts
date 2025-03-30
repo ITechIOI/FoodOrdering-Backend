@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,11 +32,16 @@ export class AddressService {
   }
 
   async findOneAddress(id: number): Promise<Address> {
-    return await this.addressRepository
+    const address = await this.addressRepository
       .createQueryBuilder('address')
       .where('address.id = :id', { id })
       .andWhere('address.deletedAt is null')
-      .getOneOrFail();
+      .getOne();
+
+    if (!address) {
+      throw new NotFoundException(`Address with ID ${id} not found`);
+    }
+    return address;
   }
 
   async update(id: number, updateAddressInput: UpdateAddressInput) {

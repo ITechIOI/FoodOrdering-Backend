@@ -30,6 +30,11 @@ export class MenuResolver {
     return await this.menuService.findAll(page, limit);
   }
 
+  @Query(() => [Menu])
+  async findAllNotPaginate(): Promise<Menu[]> {
+    return await this.menuService.findAllNotPaginate();
+  }
+
   @Query(() => Menu, { name: 'menu' })
   async findOne(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
     return await this.menuService.findOne(id);

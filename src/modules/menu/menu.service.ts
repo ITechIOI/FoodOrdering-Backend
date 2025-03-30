@@ -56,6 +56,19 @@ export class MenuService {
     return { data, total };
   }
 
+  async findAllNotPaginate(): Promise<Menu[]> {
+    const menu = await this.menuRepository
+      .createQueryBuilder('menu')
+      .leftJoinAndSelect('menu.category', 'category')
+      .where('menu.deletedAt IS NULL')
+      .getMany();
+    if (!menu) {
+      throw new NotFoundException(`Menu not found`);
+    }
+    console.log('menu', menu);
+    return menu;
+  }
+
   async findOne(id: number): Promise<Menu> {
     const menu = await this.menuRepository.findOne({
       where: { id, deletedAt: IsNull() },
