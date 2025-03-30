@@ -210,7 +210,8 @@ type Users {
   email: String
   gender: String
   phone: String
-  type: Int
+  status: String
+  fcmToken: String
   role: Roles!
   avatar: String
   otpCode: String
@@ -427,9 +428,11 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
-  register(createUser: CreateUserInput!): Users!
+  register(createUser: CreateUserInput!): AuthPayload!
+  verifySignup(token: String!): AuthPayload!
   login(loginDto: CreateAuthInput!): AuthPayload!
-  verifyLogin(token: String!): AuthPayload!
+  requestResetPassword(email: String!): AuthPayload!
+  verifyChangePassword(token: String!, password: String!): AuthPayload!
   createNotification(createNotificationInput: CreateNotificationInput!): Notification!
   createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
   updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!

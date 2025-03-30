@@ -35,9 +35,15 @@ export class User extends AbstractEntity<User> {
   @Column({ nullable: true })
   phone: string;
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ nullable: true })
-  type: number;
+  status: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({
+    nullable: true,
+  })
+  fcmToken: string;
 
   @ManyToOne(() => Role, (role) => role.users)
   @Field(() => Role)
@@ -56,7 +62,7 @@ export class User extends AbstractEntity<User> {
   otpExpiresAt: Date;
 
   @Field(() => [Order], { nullable: true })
-  @ManyToOne(() => Order, (order) => order.user)
+  @OneToMany(() => Order, (order) => order.user)
   order: Order[];
 
   @Field(() => [Complaint], { nullable: true })
