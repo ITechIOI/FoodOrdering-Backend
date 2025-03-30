@@ -108,6 +108,23 @@ import { ComplaintModule } from './modules/complaint/complaint.module';
           }),
           inject: [ConfigService],
         },
+
+        {
+          name: 'PUSH_NOTIFICATION_SERVICE',
+          useFactory: (configService: ConfigService) => ({
+            transport: Transport.RMQ,
+            options: {
+              urls: [
+                configService.get<string>('RABBITMQ_URL') ?? 'amqp://localhost',
+              ],
+              queue: configService.get<string>('RABBITMQ_QUEUE_PUSH') ?? '',
+              queueOptions: {
+                durable: true,
+              },
+            },
+          }),
+          inject: [ConfigService],
+        },
       ],
     }),
 

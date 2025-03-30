@@ -380,8 +380,7 @@ type Query {
   findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
-  sendNotification: String!
-  findByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
+  findNotificationByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
   complaints(page: Int, limit: Int): PaginatedComplaintResponse!
   complaint(id: Int!): Complaint!
   review(id: Int!): Review!
@@ -410,10 +409,6 @@ type Query {
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
   searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
   findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
-  findAllOrders(page: Int, limit: Int): PaginatedOrder!
-  findOrderById(id: Int!): Order!
-  findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
-  findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!

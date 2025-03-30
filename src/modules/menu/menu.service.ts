@@ -11,9 +11,7 @@ import { FileUpload } from 'graphql-upload-minimal';
 import * as FormData from 'form-data';
 import axios from 'axios';
 
-import { 
-} from 'src/utils/paginatedType';
-
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 @Injectable()
 export class MenuService {
@@ -207,7 +205,7 @@ export class MenuService {
       let menu: Menu[] = [];
       for (let i = 0; i < response.data.length; i++) {
         const menuItem = await this.findOne(response.data[i].id);
-       // console.log('menuItem', menuItem);
+        // console.log('menuItem', menuItem);
         menu.push(menuItem);
       }
       return menu;
