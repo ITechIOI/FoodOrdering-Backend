@@ -380,8 +380,7 @@ type Query {
   findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
-  sendNotification: String!
-  findByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
+  findNotificationByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
   complaints(page: Int, limit: Int): PaginatedComplaintResponse!
   complaint(id: Int!): Complaint!
   review(id: Int!): Review!

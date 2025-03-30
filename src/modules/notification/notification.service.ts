@@ -21,12 +21,14 @@ export class NotificationService {
 
   constructor(
     @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientRMQ,
+    @Inject('PUSH_NOTIFICATION_SERVICE') private pushRabbitClient: ClientRMQ,
     private readonly configService: ConfigService,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UsersService,
   ) {
-    this.notificationStrategy = new PushService(this.configService);
+    // this.notificationStrategy = new PushService(this.configService);
+    this.notificationStrategy = new PushService(pushRabbitClient);
   }
 
   async sendNotification() {
@@ -54,9 +56,10 @@ export class NotificationService {
         createNotificationDto.content,
       );
     } else {
-      this.notificationStrategy = new PushService(this.configService);
+      // this.notificationStrategy = new PushService(this.configService);
+      this.notificationStrategy = new PushService(this.pushRabbitClient);
       this.notificationStrategy.sendNotification(
-        user.email,
+        user.fcmToken,
         createNotificationDto.title,
         createNotificationDto.content,
       );
