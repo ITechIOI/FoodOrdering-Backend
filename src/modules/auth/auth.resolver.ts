@@ -15,9 +15,14 @@ export class AuthResolver {
     return 'Hello World!';
   }
 
-  @Mutation(() => User)
+  @Mutation(() => AuthPayload)
   async register(@Args('createUser') createUser: CreateUserInput) {
     return await this.authService.register(createUser);
+  }
+
+  @Mutation(() => AuthPayload)
+  async verifySignup(@Args('token') token: string) {
+    return await this.authService.verifySignUp(token);
   }
 
   @Mutation(() => AuthPayload)
@@ -25,8 +30,23 @@ export class AuthResolver {
     return await this.authService.login(loginDto);
   }
 
+  // @Mutation(() => AuthPayload)
+  // async verifyLogin(@Args('token') token: string) {
+  //   return await this.authService.verifyLogin(token);
+  // }
+
   @Mutation(() => AuthPayload)
-  async verifyLogin(@Args('token') token: string) {
-    return await this.authService.verifyLogin(token);
+  async requestResetPassword(
+    @Args('email', { type: () => String }) email: string,
+  ): Promise<AuthPayload> {
+    return await this.authService.requestResetPassword(email);
+  }
+
+  @Mutation(() => AuthPayload)
+  async verifyChangePassword(
+    @Args('token') token: string,
+    @Args('password') password: string,
+  ): Promise<AuthPayload> {
+    return await this.authService.verifyChangePassword(token, password);
   }
 }
