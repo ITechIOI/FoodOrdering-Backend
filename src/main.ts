@@ -100,7 +100,7 @@ async function bootstrap() {
   redisApp.listen();
   pushNotification.listen();
 
-  await app.listen(3000);
+  await app.listen(3001);
 }
 
 bootstrap();
