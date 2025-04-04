@@ -37,7 +37,7 @@ import { ComplaintModule } from './modules/complaint/complaint.module';
       isGlobal: true,
       useFactory: async () => ({
         store: redisStore,
-        host: 'localhost',
+        host: 'redis-service',
         port: 6379,
         ttl: 6000,
       }),
