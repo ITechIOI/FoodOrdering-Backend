@@ -100,6 +100,7 @@ async function bootstrap() {
   redisApp.listen();
   pushNotification.listen();
 
+  const port = configService.get<number>('APP_PORT') || 3001;
   await app.listen(3001);
 }
 
