@@ -14,10 +14,14 @@ export class CacheService {
       this.redisClient = new Redis.default({
         host: this.configService.get<string>('REDIS_HOST'),
         port: this.configService.get<number>('REDIS_PORT'),
+        username: this.configService.get<string>('REDIS_USERNAME'),
+        password: this.configService.get<string>('REDIS_PASSWORD'),
+        db: this.configService.get<number>('REDIS_DB'),
+        lazyConnect: true,
+        enableReadyCheck: true,
       });
 
       this.redisClient.on('error', () => {
-        /** Optional: Silent fail or integrate custom error handling later */
         console.error('Redis connection error');
       });
     }
