@@ -427,6 +427,7 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
+  uploadToCloudinary(file: Upload!): String!
   register(createUser: CreateUserInput!): AuthPayload!
   verifySignup(token: String!): AuthPayload!
   login(loginDto: CreateAuthInput!): AuthPayload!
