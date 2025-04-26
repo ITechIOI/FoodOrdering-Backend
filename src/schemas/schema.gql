@@ -397,6 +397,7 @@ type Query {
   restaurants(page: Int, limit: Int): PaginatedRestaurantResponse!
   restaurant(id: Int!): Restaurant!
   searchNearestRestaurants(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
+  findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
   searchPlace(input: String!): GoongAutoCompleteResult!
   reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
   direction(from: String!, to: String!): GoongDirectionResult!

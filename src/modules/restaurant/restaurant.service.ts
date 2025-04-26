@@ -162,4 +162,19 @@ export class RestaurantService {
 
     return result;
   }
+
+  async findRestaurantsByOwnerId(userId: number) {
+    const restaurants = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.owner', 'owner')
+      .where('owner.id = :userId', { userId })
+      .andWhere('restaurant.deletedAt IS NULL')
+      .getMany();
+
+    if (!restaurants || restaurants.length === 0) {
+      throw new NotFoundException(`No restaurants found for user ID ${userId}`);
+    }
+
+    return restaurants;
+  }
 }
