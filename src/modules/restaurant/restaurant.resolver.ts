@@ -65,4 +65,11 @@ export class RestaurantResolver {
       limit,
     );
   }
+
+  @Query(() => [Restaurant])
+  async findRestaurantsByOwnerId(
+    @Args('ownerId', { type: () => Int }) ownerId: number,
+  ): Promise<Restaurant[]> {
+    return this.restaurantService.findRestaurantsByOwnerId(ownerId);
+  }
 }
