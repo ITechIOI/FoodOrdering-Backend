@@ -3,7 +3,10 @@ import { InputType, Field } from '@nestjs/graphql';
 @InputType()
 export class CreateRestaurantInput {
   @Field(() => String)
-  name: string;
+  name?: string;
+
+  @Field(() => String, { nullable: true })
+  avatar?: string;
 
   @Field(() => String, { nullable: true })
   description?: string;

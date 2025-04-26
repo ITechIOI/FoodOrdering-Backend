@@ -623,6 +623,7 @@ input UpdateAddressInput {
 
 input CreateRestaurantInput {
   name: String!
+  avatar: String
   description: String
   phone: String!
   openTime: String!
@@ -634,6 +635,7 @@ input CreateRestaurantInput {
 
 input UpdateRestaurantInput {
   name: String
+  avatar: String
   description: String
   phone: String
   openTime: String
