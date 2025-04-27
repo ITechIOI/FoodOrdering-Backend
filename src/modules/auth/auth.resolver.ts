@@ -1,3 +1,4 @@
+import { AuthPayloadContainedId } from './../../utils/authpayloadcontainedid';
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { User } from 'src/entities/user.entity';
@@ -15,17 +16,17 @@ export class AuthResolver {
     return 'Hello World!';
   }
 
-  @Mutation(() => AuthPayload)
+  @Mutation(() => AuthPayloadContainedId)
   async register(@Args('createUser') createUser: CreateUserInput) {
     return await this.authService.register(createUser);
   }
 
-  @Mutation(() => AuthPayload)
+  @Mutation(() => AuthPayloadContainedId)
   async verifySignup(@Args('token') token: string) {
     return await this.authService.verifySignUp(token);
   }
 
-  @Mutation(() => AuthPayload)
+  @Mutation(() => AuthPayloadContainedId)
   async login(@Args('loginDto') loginDto: CreateAuthInput) {
     return await this.authService.login(loginDto);
   }
@@ -35,14 +36,14 @@ export class AuthResolver {
   //   return await this.authService.verifyLogin(token);
   // }
 
-  @Mutation(() => AuthPayload)
+  @Mutation(() => AuthPayloadContainedId)
   async requestResetPassword(
     @Args('email', { type: () => String }) email: string,
   ): Promise<AuthPayload> {
     return await this.authService.requestResetPassword(email);
   }
 
-  @Mutation(() => AuthPayload)
+  @Mutation(() => AuthPayloadContainedId)
   async verifyChangePassword(
     @Args('token') token: string,
     @Args('password') password: string,
