@@ -7,7 +7,7 @@ type Roles {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String!
   users: [Users!]!
 }
@@ -22,7 +22,7 @@ type RevenueReport {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   month: Int
   year: Int
   totalOrders: Int
@@ -37,7 +37,7 @@ type OrderDetail {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   quantity: Int
   note: String
   menu: Menu
@@ -49,7 +49,7 @@ type Menu {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   price: Int
@@ -65,7 +65,7 @@ type Category {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String!
   restaurant: Restaurant
   menu: [Menu!]
@@ -76,7 +76,7 @@ type Restaurant {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   phone: String
@@ -96,7 +96,7 @@ type Address {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   label: String
   province: String
   district: String
@@ -115,7 +115,7 @@ type Discount {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   code: String
   description: String
   percentage: Float
@@ -132,7 +132,7 @@ type Payment {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   transactionId: String
   paymentMethod: String
   status: String
@@ -144,7 +144,7 @@ type Complaint {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   content: String
   imageUrl: String
   response: String
@@ -158,7 +158,7 @@ type Review {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   rating: Int
   content: String
   imageUrl: String
@@ -172,7 +172,7 @@ type Order {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   totalPrice: Int
   shippingFee: Int
   status: String
@@ -190,7 +190,7 @@ type Notification {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   title: String
   content: String
   type: String
@@ -203,7 +203,7 @@ type Users {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   username: String
   password: String
@@ -274,7 +274,7 @@ type NearestRestaurant {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   phone: String
@@ -305,7 +305,7 @@ type NearestAdress {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   label: String
   province: String
   district: String
@@ -330,7 +330,7 @@ type NearbyMenuItem {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   price: Int
