@@ -23,7 +23,7 @@ export class AuthService {
     return Math.random().toString(36).substring(2, 7).toUpperCase(); // Ví dụ: "A1B2C"
   }
 
-  async register(createUser: CreateUserInput): Promise<AuthPayload> {
+  async register(createUser: CreateUserInput): Promise<AuthPayloadContainedId> {
     const hashedPassword = await bcrypt.hash(createUser.password, 10);
 
     // Tạo mã OTP và lưu vào database
@@ -47,7 +47,7 @@ export class AuthService {
       isRead: 'unread',
     };
     const notification = this.notificationService.create(createNotificationDto);
-    return { token: otp };
+    return { id: user.id, token: otp };
   }
 
   async verifySignUp(otp: string): Promise<AuthPayloadContainedId> {
