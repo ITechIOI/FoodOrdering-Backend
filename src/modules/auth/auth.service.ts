@@ -9,6 +9,7 @@ import { AuthPayload } from 'src/utils/authpayload';
 import { NotificationService } from '../notification/notification.service';
 import { CreateNotificationInput } from '../notification/dto/create-notification.input';
 import { User } from 'src/entities/user.entity';
+import { AuthPayloadContainedId } from 'src/utils/authpayloadcontainedid';
 
 @Injectable()
 export class AuthService {
@@ -49,7 +50,7 @@ export class AuthService {
     return { token: otp };
   }
 
-  async verifySignUp(otp: string): Promise<AuthPayload> {
+  async verifySignUp(otp: string): Promise<AuthPayloadContainedId> {
     const user = await this.userService.findOneByOtp(otp);
     // console.log('User found:', user);
 
@@ -61,6 +62,7 @@ export class AuthService {
     const result = await this.userService.updateUser(user.id, user);
     // console.log('Updated user:', result);
     return {
+      id: result.id,
       token: this.jwtService.sign({ id: user.id, role: user.role.id }),
     };
   }
@@ -161,7 +163,7 @@ export class AuthService {
   async verifyChangePassword(
     otp: string,
     newPassword: string,
-  ): Promise<AuthPayload> {
+  ): Promise<AuthPayloadContainedId> {
     const user = await this.userService.findOneByOtp(otp);
 
     if (!user || new Date() > user.otpExpiresAt) {
@@ -182,6 +184,6 @@ export class AuthService {
       .catch((err) => {
         throw new UnauthorizedException('Invalid credentials');
       });
-    return { token };
+    return { id: user.id, token };
   }
 }
