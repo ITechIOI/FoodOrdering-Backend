@@ -36,7 +36,7 @@ export class User extends AbstractEntity<User> {
   phone: string;
 
   @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 'inactive' })
   status: string;
 
   @Field(() => String, { nullable: true })
