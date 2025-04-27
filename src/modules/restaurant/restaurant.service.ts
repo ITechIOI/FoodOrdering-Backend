@@ -50,6 +50,7 @@ export class RestaurantService {
   ): Promise<PaginatedResponse<Restaurant>> {
     const [data, total] = await this.restaurantRepository.findAndCount({
       relations: ['address', 'owner'],
+      where: { deletedAt: IsNull(), isActive: true },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -59,7 +60,7 @@ export class RestaurantService {
 
   async findOne(id: number): Promise<Restaurant> {
     const restaurant = await this.restaurantRepository.findOne({
-      where: { id, deletedAt: IsNull() },
+      where: { id, deletedAt: IsNull(), isActive: true },
       relations: ['address', 'owner'],
     });
 
@@ -133,6 +134,7 @@ export class RestaurantService {
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
       .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('restaurant.isActivate = :isActive', { isActive: 1 })
       .andWhere('address.deletedAt IS NULL')
       .addSelect(
         `
@@ -169,6 +171,7 @@ export class RestaurantService {
       .leftJoinAndSelect('restaurant.owner', 'owner')
       .where('owner.id = :userId', { userId })
       .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('restaurant.isActive = :isActive', { isActive: 1 })
       .getMany();
 
     if (!restaurants || restaurants.length === 0) {
