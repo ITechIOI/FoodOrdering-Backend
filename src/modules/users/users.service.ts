@@ -55,10 +55,14 @@ export class UsersService {
   }
 
   async findOneByUsername(username: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({
-      where: { username, deletedAt: IsNull(), status: 'active' },
-      relations: ['role'],
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .andWhere('user.deletedAt IS NULL')
+      .andWhere('user.status = :status', { status: 'active' })
+      .leftJoinAndSelect('user.role', 'role')
+      .getOne();
+    console.log('User found:', user);
     if (!user) {
       throw new NotFoundException('User not found');
     }
