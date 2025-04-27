@@ -102,7 +102,7 @@ export class AuthService {
   //   return { token: otp };
   // }
 
-  async login(loginDto: CreateAuthInput): Promise<AuthPayload> {
+  async login(loginDto: CreateAuthInput): Promise<AuthPayloadContainedId> {
     const { username, password } = loginDto;
     const user = await this.userService.findOneByUsername(username);
 
@@ -111,11 +111,12 @@ export class AuthService {
     }
 
     return {
+      id: user.id,
       token: this.jwtService.sign({ id: user.id, role: user.role.id }),
     };
   }
 
-  async verifyLogin(otp: string): Promise<AuthPayload> {
+  async verifyLogin(otp: string): Promise<AuthPayloadContainedId> {
     const user = await this.userService.findOneByOtp(otp);
 
     if (!user || new Date() > user.otpExpiresAt) {
@@ -126,12 +127,13 @@ export class AuthService {
     await this.userService.updateUser(user.id, user);
 
     return {
+      id: user.id,
       token: this.jwtService.sign({ id: user.id, role: user.role.id }),
     };
   }
 
   // Phương thức này được dùng để đổi password trước khi đăng nhập
-  async requestResetPassword(email: string): Promise<AuthPayload> {
+  async requestResetPassword(email: string): Promise<AuthPayloadContainedId> {
     const user = await this.userService.findOneByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Email not found');
@@ -157,7 +159,10 @@ export class AuthService {
       isRead: 'unread',
     };
     const notification = this.notificationService.create(createNotificationDto);
-    return { token: otp };
+    return {
+      id: updatedUser.id,
+      token: otp,
+    };
   }
 
   async verifyChangePassword(
