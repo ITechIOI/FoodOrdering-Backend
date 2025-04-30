@@ -169,6 +169,7 @@ export class RestaurantService {
     const restaurants = await this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.owner', 'owner')
+      .leftJoinAndSelect('restaurant.address', 'address')
       .where('owner.id = :userId', { userId })
       .andWhere('restaurant.deletedAt IS NULL')
       .getMany();
