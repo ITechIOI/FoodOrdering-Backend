@@ -229,7 +229,8 @@ type PaginatedUser {
   data: [Users!]!
 }
 
-type AuthPayload {
+type AuthPayloadContainedId {
+  id: Int!
   token: String!
 }
 
@@ -429,11 +430,11 @@ type Mutation {
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
   uploadToCloudinary(file: Upload!): String!
-  register(createUser: CreateUserInput!): AuthPayload!
-  verifySignup(token: String!): AuthPayload!
-  login(loginDto: CreateAuthInput!): AuthPayload!
-  requestResetPassword(email: String!): AuthPayload!
-  verifyChangePassword(token: String!, password: String!): AuthPayload!
+  register(createUser: CreateUserInput!): AuthPayloadContainedId!
+  verifySignup(token: String!): AuthPayloadContainedId!
+  login(loginDto: CreateAuthInput!): AuthPayloadContainedId!
+  requestResetPassword(email: String!): AuthPayloadContainedId!
+  verifyChangePassword(token: String!, password: String!): AuthPayloadContainedId!
   createNotification(createNotificationInput: CreateNotificationInput!): Notification!
   createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
   updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!
