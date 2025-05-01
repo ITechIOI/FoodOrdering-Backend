@@ -80,6 +80,7 @@ type Restaurant {
   name: String
   description: String
   phone: String
+  avatar: String
   openTime: String
   closeTime: String
   rating: Int
@@ -279,6 +280,7 @@ type NearestRestaurant {
   name: String
   description: String
   phone: String
+  avatar: String
   openTime: String
   closeTime: String
   rating: Int
@@ -410,7 +412,8 @@ type Query {
   findAllNotPaginate: [Menu!]!
   menu(id: Int!): Menu!
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
-  searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  searchNearestItemByKeyword(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  searchNearestMenuItems(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearbyMenuItem!]!
   findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
