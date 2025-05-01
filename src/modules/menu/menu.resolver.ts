@@ -75,6 +75,15 @@ export class MenuResolver {
     );
   }
 
+  @Query(() => [NearbyMenuItem])
+  async searchNearestMenuItems(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  ): Promise<NearbyMenuItem[]> {
+    return this.menuService.findNearestMenuItems(latitude, longitude, limit);
+  }
+
   @Query(() => [Menu])
   async findMenusByImageUrl(
     @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
