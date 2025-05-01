@@ -23,6 +23,10 @@ export class Restaurant extends AbstractEntity<Restaurant> {
   phone: string;
 
   @Field(() => String, { nullable: true })
+  @Column({ nullable: true })
+  avatar: string;
+
+  @Field(() => String, { nullable: true })
   @Column({ type: 'time', nullable: true })
   openTime: string;
 
