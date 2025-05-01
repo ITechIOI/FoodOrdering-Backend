@@ -192,6 +192,52 @@ export class MenuService {
     }));
   }
 
+  async findNearestMenuItems(
+    userLat: number,
+    userLng: number,
+    limit = 20,
+  ): Promise<
+    (Menu & {
+      distance: number;
+      restaurantName: string;
+      categoryName: string;
+    })[]
+  > {
+    const query = this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.category', 'category')
+      .innerJoin('category.restaurant', 'restaurant')
+      .innerJoin('restaurant.address', 'address')
+      .where('address.latitude IS NOT NULL AND address.longitude IS NOT NULL')
+      .andWhere('menu.deletedAt IS NULL')
+      .andWhere('category.deletedAt IS NULL')
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('address.deletedAt IS NULL')
+      .addSelect([
+        'restaurant.name AS restaurantName',
+        'category.name AS categoryName',
+        `
+        6371 * acos(
+          cos(radians(:userLat)) * cos(radians(address.latitude)) *
+          cos(radians(address.longitude) - radians(:userLng)) +
+          sin(radians(:userLat)) * sin(radians(address.latitude))
+        ) AS distance
+        `,
+      ])
+      .orderBy('distance', 'ASC')
+      .limit(limit)
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    return entities.map((menuItem, index) => ({
+      ...menuItem,
+      restaurantName: raw[index].restaurantName,
+      categoryName: raw[index].categoryName,
+      distance: parseFloat(raw[index].distance),
+    }));
+  }
+
   // get the list of menus by fast api that has the nearest distance to the user by limit
   async findMenuByImage(file: FileUpload, limit: number = 10): Promise<Menu[]> {
     const { createReadStream, filename, mimetype } = file;

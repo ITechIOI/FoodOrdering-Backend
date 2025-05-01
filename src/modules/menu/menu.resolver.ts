@@ -61,7 +61,7 @@ export class MenuResolver {
   }
 
   @Query(() => [NearbyMenuItem])
-  async searchNearbyMenuItems(
+  async searchNearestItemByKeyword(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('keyword') keyword: string,
@@ -73,6 +73,15 @@ export class MenuResolver {
       keyword,
       limit,
     );
+  } 
+
+  @Query(() => [NearbyMenuItem])
+  async searchNearestMenuItems(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  ): Promise<NearbyMenuItem[]> {
+    return this.menuService.findNearestMenuItems(latitude, longitude, limit);
   }
 
   @Query(() => [Menu])
