@@ -134,7 +134,7 @@ export class RestaurantService {
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
       .andWhere('restaurant.deletedAt IS NULL')
-      .andWhere('restaurant.isActivate = :isActive', { isActive: 1 })
+      .andWhere('restaurant.isActivate = :isActive', { isActive: 'accepted' })
       .andWhere('address.deletedAt IS NULL')
       .addSelect(
         `
@@ -179,5 +179,49 @@ export class RestaurantService {
     }
 
     return restaurants;
+  }
+
+  // find by categoryName
+  // Show distance of restaurant from user location
+  async findRestaurantsByCategoryName(
+    categoryName: string,
+    userLat: number,
+    userLng: number,
+    limit: number,
+  ): Promise<(Restaurant & { distance: number })[]> {
+    const query = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.categories', 'category')
+      .leftJoinAndSelect('restaurant.address', 'address')
+      // Use like to find restaurants with similar category names
+      .where('category.name LIKE :categoryName', {
+        categoryName: `%${categoryName}%`,
+      })
+      .andWhere(
+        'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+      )
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .addSelect(
+        `
+        6371 * acos(
+          cos(radians(:userLat)) * cos(radians(address.latitude)) *
+          cos(radians(address.longitude) - radians(:userLng)) +
+          sin(radians(:userLat)) * sin(radians(address.latitude))
+        )
+      `,
+        'distance',
+      )
+      .orderBy('distance', 'ASC')
+      .andWhere('restaurant.deletedAt IS NULL')
+      .limit(limit)
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    const result = entities.map((restaurant, index) => ({
+      ...restaurant,
+      distance: parseFloat(raw[index].distance),
+    }));
+    return result;
   }
 }
