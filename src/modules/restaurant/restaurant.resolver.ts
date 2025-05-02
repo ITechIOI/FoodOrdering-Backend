@@ -72,4 +72,19 @@ export class RestaurantResolver {
   ): Promise<Restaurant[]> {
     return this.restaurantService.findRestaurantsByOwnerId(ownerId);
   }
+
+  @Query(() => [NearestRestaurant])
+  async findRestaurantsByCategory(
+    @Args('categoryName', { type: () => String }) categoryName: string,
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<NearestRestaurant[]> {
+    return this.restaurantService.findRestaurantsByCategoryName(
+      categoryName,
+      latitude,
+      longitude,
+      limit,
+    );
+  }
 }

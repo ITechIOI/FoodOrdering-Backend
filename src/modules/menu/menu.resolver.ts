@@ -73,7 +73,7 @@ export class MenuResolver {
       keyword,
       limit,
     );
-  } 
+  }
 
   @Query(() => [NearbyMenuItem])
   async searchNearestMenuItems(

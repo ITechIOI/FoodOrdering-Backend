@@ -8,6 +8,7 @@ import { Notification } from './notification.entity';
 import { OrderDetail } from './order_detail.entity';
 import { Restaurant } from './restaurant.entity';
 import { Address } from './address.entity';
+import { Favorite } from './favorite.entity';
 @Entity({ name: 'users' })
 @ObjectType('Users')
 export class User extends AbstractEntity<User> {
@@ -88,4 +89,8 @@ export class User extends AbstractEntity<User> {
   @Field(() => Address, { nullable: true })
   @ManyToOne(() => Address, (address) => address.user)
   address: Address;
+
+  @Field(() => Favorite, { nullable: true })
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorite: Favorite[];
 }

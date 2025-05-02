@@ -31,6 +31,7 @@ import { CacheWorkerModule } from './modules/cache_worker/cache_worker.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheService } from './common/cache/cache.service';
 import { ComplaintModule } from './modules/complaint/complaint.module';
+import { FavoriteModule } from './modules/favorite/favorite.module';
 @Module({
   imports: [
     CacheModule.registerAsync({
@@ -147,6 +148,7 @@ import { ComplaintModule } from './modules/complaint/complaint.module';
     RevenueReportModule,
     ReviewModule,
     CacheWorkerModule,
+    FavoriteModule,
   ],
   controllers: [],
   providers: [AppResolver, EmailService, CacheService],

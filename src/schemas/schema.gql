@@ -71,6 +71,16 @@ type Category {
   menu: [Menu!]
 }
 
+type Favorite {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: String
+  restaurant: Restaurant
+  user: Users
+}
+
 type Restaurant {
   id: Int!
   createdAt: DateTime!
@@ -90,6 +100,7 @@ type Restaurant {
   categories: [Category!]
   order: [Order!]
   owner: Users
+  favorite: [Favorite!]
 }
 
 type Address {
@@ -223,6 +234,7 @@ type Users {
   notification: [Notification!]
   restaurants: [Restaurant!]
   address: Address
+  favorite: Favorite
 }
 
 type PaginatedUser {
@@ -290,6 +302,7 @@ type NearestRestaurant {
   categories: [Category!]
   order: [Order!]
   owner: Users
+  favorite: [Favorite!]
   distance: Float!
 }
 
@@ -377,6 +390,11 @@ type PaginatedComplaintResponse {
   data: [Complaint!]!
 }
 
+type PaginatedFavoriteResponse {
+  total: Int!
+  data: [Favorite!]!
+}
+
 type Query {
   sayHello: String!
   findAllUsers(page: Int, limit: Int): PaginatedUser!
@@ -401,6 +419,7 @@ type Query {
   restaurant(id: Int!): Restaurant!
   searchNearestRestaurants(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
   findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
+  findRestaurantsByCategory(categoryName: String!, latitude: Float!, longitude: Float!, limit: Int): [NearestRestaurant!]!
   searchPlace(input: String!): GoongAutoCompleteResult!
   reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
   direction(from: String!, to: String!): GoongDirectionResult!
@@ -421,6 +440,9 @@ type Query {
   payment(id: Int!): Payment!
   revenueReports(page: Int, limit: Int): PaginatedRevenueReportResponse!
   revenueReport(id: Int!): RevenueReport!
+  findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
+  findFavoriteById(id: Int!): Favorite!
+  findFavoritesByUserId(userId: Int!): [Favorite!]!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -473,6 +495,9 @@ type Mutation {
   createRevenueReport(createRevenueReportInput: CreateRevenueReportInput!): RevenueReport!
   updateRevenueReport(updateRevenueReportInput: UpdateRevenueReportInput!): RevenueReport!
   removeRevenueReport(id: Int!): RevenueReport!
+  createFavorite(createFavoriteInput: CreateFavoriteInput!): Favorite!
+  updateFavorite(updateFavoriteInput: UpdateFavoriteInput!): Favorite!
+  removeFavorite(id: Int!): Favorite!
 }
 
 input CreateUserInput {
@@ -765,5 +790,16 @@ input UpdateRevenueReportInput {
   cancalledOrders: Int
   averageRating: Int
   restaurantId: Int
+  id: Int!
+}
+
+input CreateFavoriteInput {
+  restaurantId: Int!
+  userId: Int!
+}
+
+input UpdateFavoriteInput {
+  restaurantId: Int
+  userId: Int
   id: Int!
 }
