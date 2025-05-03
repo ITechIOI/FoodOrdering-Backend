@@ -33,6 +33,7 @@ export class CategoryService {
     const category = this.categoryRepository.create({
       name,
       restaurant: restaurant ?? undefined,
+      isActive: createCategoryInput.isActive,
     });
 
     return this.categoryRepository.save(category);
