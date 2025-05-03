@@ -31,6 +31,6 @@ export class AbstractEntity<T> {
   deletedAt: Date;
 
   @Field(() => String, { nullable: true })
-  @Column({ default: 'pending' })
+  @Column({ nullable: true, default: 'pending' })
   isActive: string;
 }
