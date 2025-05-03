@@ -7,4 +7,7 @@ export class CreateCategoryInput {
 
   @Field(() => Int, { nullable: true, description: 'ID nhà hàng' })
   restaurantId?: number;
+
+  @Field(() => String, { nullable: true })
+  isActive: string;
 }
