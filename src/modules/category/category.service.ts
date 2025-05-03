@@ -73,6 +73,10 @@ export class CategoryService {
       category.name = updateCategoryInput.name;
     }
 
+    if (updateCategoryInput.isActive) {
+      category.isActive = updateCategoryInput.isActive;
+    }
+
     if (updateCategoryInput.restaurantId) {
       const restaurant = await this.restaurantService.findOne(
         updateCategoryInput.restaurantId,
