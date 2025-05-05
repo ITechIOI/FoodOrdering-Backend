@@ -43,8 +43,15 @@ export class OrderService {
         `Address with ID ${createOrderInput.addressId} not found`,
       );
     }
-    let order;
 
+    let order = this.orderRepository.create({
+      ...createOrderInput,
+      user,
+      restaurant,
+      address,
+    });
+
+    // Tính toán totalPrice riêng
     if (createOrderInput.discountId) {
       const discount = await this.discountService.findOneById(
         createOrderInput.discountId,
@@ -54,26 +61,11 @@ export class OrderService {
           `Discount with ID ${createOrderInput.discountId} not found`,
         );
       }
-      order.totalPrice = createOrderInput.shippingFee;
-      order.totalPrice = order.totalPrice - discount.percentage;
-      if (order.totalPrice < 0) {
-        order.totalPrice = 0;
-      }
-      order = this.orderRepository.create({
-        ...createOrderInput,
-        user,
-        restaurant,
-        address,
-        discount,
-      });
+      order.discount = discount;
+      order.totalPrice = createOrderInput.shippingFee - discount.percentage;
+      if (order.totalPrice < 0) order.totalPrice = 0;
     } else {
       order.totalPrice = createOrderInput.shippingFee;
-      order = this.orderRepository.create({
-        ...createOrderInput,
-        user,
-        restaurant,
-        address,
-      });
     }
 
     return await this.orderRepository.save(order);
