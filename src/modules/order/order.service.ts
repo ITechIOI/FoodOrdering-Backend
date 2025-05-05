@@ -139,6 +139,8 @@ export class OrderService {
   ): Promise<{ total: number; data: Order[] }> {
     const [data, total] = await this.orderRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.restaurant', 'restaurant')
       .where('order.restaurant.id = :restaurantId', { restaurantId })
       .andWhere('order.deletedAt is null')
       .take(limit)
@@ -146,7 +148,7 @@ export class OrderService {
       .getManyAndCount();
     if (data.length === 0) {
       throw new NotFoundException(
-        `Order with user ID ${restaurantId} not found`,
+        `Order with restaurant ${restaurantId} not found`,
       );
     }
     return { total, data };
