@@ -141,6 +141,8 @@ export class OrderService {
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('order.restaurant', 'restaurant')
+      .leftJoinAndSelect('order.address', 'address')
+      .leftJoinAndSelect('order.discount', 'discount')
       .where('order.restaurant.id = :restaurantId', { restaurantId })
       .andWhere('order.deletedAt is null')
       .take(limit)
