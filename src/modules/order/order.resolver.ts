@@ -47,7 +47,11 @@ export class OrderResolver {
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit,
   ) {
-    return await this.orderService.findByUserId(restaurantId, page, limit);
+    return await this.orderService.findByRestaurantId(
+      restaurantId,
+      page,
+      limit,
+    );
   }
 
   // Không cho phép update userId, restaurantId, discountId, và addressId
