@@ -55,13 +55,11 @@ export class RestaurantResolver {
   async searchNearestRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
-    @Args('keyword') keyword: string,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
   ): Promise<NearestRestaurant[]> {
     return this.restaurantService.findNearestRestaurantsByName(
       latitude,
       longitude,
-      keyword,
       limit,
     );
   }
@@ -86,5 +84,21 @@ export class RestaurantResolver {
       longitude,
       limit,
     );
+  }
+
+  // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng cao nhất
+  @Query(() => [Restaurant])
+  async findTopRatedRestaurants(
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<Restaurant[]> {
+    return this.restaurantService.findTopRatedRestaurants(limit);
+  }
+
+  // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
+  @Query(() => [Restaurant])
+  async findMostOrderedRestaurants(
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<Restaurant[]> {
+    return this.restaurantService.findMostOrderedRestaurants(limit);
   }
 }
