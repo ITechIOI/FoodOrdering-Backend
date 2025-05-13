@@ -9,6 +9,7 @@ import { UsersService } from '../users/users.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CacheService } from 'src/common/cache/cache.service';
 import { PaginatedResponse } from 'src/utils/paginatedType';
+import { TopRatedRestaurant } from './dto/output/TopRatedRestaurant';
 
 @Injectable()
 export class RestaurantService {
@@ -215,23 +216,30 @@ export class RestaurantService {
     return result;
   }
 
-  // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng (trong bảng review với tham chiếu của review trỏ đến order, order trỏ đến restaurant, restaurant và review không có quan hệ gì) cao nhất
-  async findTopRatedRestaurants(limit: number): Promise<Restaurant[]> {
-    const restaurants = await this.restaurantRepository
+  // Tìm kiếm nhà hàng có trung bình tổng lượt rating đơn hàng (trong bảng review với tham chiếu của review trỏ đến order, order trỏ đến restaurant, restaurant và review không có quan hệ gì) cao nhất
+  async findTopRatedRestaurants(limit: number): Promise<TopRatedRestaurant[]> {
+    const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
-      .leftJoinAndSelect('restaurant.order', 'order')
-      .leftJoinAndSelect('order.review', 'review')
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
       .select('restaurant')
-      .addSelect('SUM(review.rating) AS totalRating')
+      .addSelect('AVG(review.rating)', 'averageRating')
       .groupBy('restaurant.id')
-      .orderBy('totalRating', 'DESC')
-      .limit(limit)
-      .getMany();
-    if (!restaurants || restaurants.length === 0) {
+      .orderBy('averageRating', 'DESC')
+      .limit(limit);
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    if (!entities || entities.length === 0) {
       throw new NotFoundException(`No restaurants found`);
     }
 
-    return restaurants;
+    const result = entities.map((restaurant, index) => ({
+      restaurant,
+      averageRating: parseFloat(raw[index].averageRating),
+    }));
+
+    return result;
   }
 
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất

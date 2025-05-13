@@ -5,6 +5,7 @@ import { CreateRestaurantInput } from './dto/create-restaurant.input';
 import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 import { NearestRestaurant } from './dto/output/NearestRestaurant';
 import { createPaginatedType } from 'src/utils/paginated';
+import { TopRatedRestaurant } from './dto/output/TopRatedRestaurant';
 const PaginatedRestaurantResponse = createPaginatedType(
   Restaurant,
   'PaginatedRestaurantResponse',
@@ -87,10 +88,10 @@ export class RestaurantResolver {
   }
 
   // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng cao nhất
-  @Query(() => [Restaurant])
+  @Query(() => [TopRatedRestaurant])
   async findTopRatedRestaurants(
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<Restaurant[]> {
+  ): Promise<TopRatedRestaurant[]> {
     return this.restaurantService.findTopRatedRestaurants(limit);
   }
 
