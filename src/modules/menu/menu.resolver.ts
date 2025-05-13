@@ -7,6 +7,7 @@ import { NearbyMenuItem } from './dto/output/NearbyMenuItem';
 import { FileUpload, GraphQLUpload, Upload } from 'graphql-upload-minimal';
 
 import { createPaginatedType } from 'src/utils/paginated';
+import { TopOrderedMenu } from './dto/output/TopOrderedMenu';
 const PaginatedMenuResponse = createPaginatedType(
   Menu,
   'PaginatedMenuResponse',
@@ -90,5 +91,19 @@ export class MenuResolver {
     @Args({ name: 'limit', type: () => Int }) limit: number,
   ): Promise<Menu[]> {
     return this.menuService.findMenuByImage(file, limit);
+  }
+
+  // Tìm kiếm top 10 món ăn được đặt hàng nhiều nhất tại nhà hàng X
+  @Query(() => [TopOrderedMenu])
+  async findTop10MenuByRestaurantId(
+    @Args('restaurantId', { type: () => Int }) restaurantId: number,
+    @Args('year', { type: () => Int }) year: number,
+    @Args('month', { type: () => Int, nullable: true }) month?: number,
+  ): Promise<TopOrderedMenu[]> {
+    return this.menuService.findTop10MenuItemsByRestaurantIdByTime(
+      restaurantId,
+      year,
+      month,
+    );
   }
 }

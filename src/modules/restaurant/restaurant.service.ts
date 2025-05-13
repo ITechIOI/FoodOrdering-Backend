@@ -259,4 +259,6 @@ export class RestaurantService {
 
     return restaurants;
   }
+
+  
 }
