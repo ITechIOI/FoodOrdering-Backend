@@ -365,9 +365,19 @@ type NearbyMenuItem {
   categoryName: String!
 }
 
+type TopOrderedMenu {
+  menu: Menu!
+  totalOrders: Int!
+}
+
 type PaginatedMenuResponse {
   total: Int!
   data: [Menu!]!
+}
+
+type RevenueByYear {
+  month: Int!
+  totalRevenue: Int!
 }
 
 type PaginatedOrder {
@@ -414,6 +424,9 @@ type Query {
   findOrderById(id: Int!): Order!
   findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
   findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
+  getTotalOrderByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
+  getTotalRevenueByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
+  getTotalRevenueByRestaurantIdByYear(restaurantId: Int!, year: Int!): [RevenueByYear!]!
   findAllDiscounts(page: Int, limit: Int): PaginatedDiscount!
   findDiscountById(id: Int!): Discount!
   findDiscountByCode(code: String!): Discount!
@@ -441,6 +454,7 @@ type Query {
   searchNearestItemByKeyword(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
   searchNearestMenuItems(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearbyMenuItem!]!
   findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
+  findTop10MenuByRestaurantId(restaurantId: Int!, year: Int!, month: Int): [TopOrderedMenu!]!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!

@@ -12,6 +12,7 @@ import * as FormData from 'form-data';
 import axios from 'axios';
 
 import { PaginatedResponse } from 'src/utils/paginatedType';
+import { TopOrderedMenu } from './dto/output/TopOrderedMenu';
 
 @Injectable()
 export class MenuService {
@@ -275,5 +276,45 @@ export class MenuService {
       );
       throw new Error('FastAPI upload failed');
     }
+  }
+
+  // Tìm kiếm top 10 món ăn được đặt hàng nhiều nhất tại nhà hàng X (Tham số đầu vào là mã nhà hàng và tháng+năm cần tìm) theo tháng
+  async findTop10MenuItemsByRestaurantIdByTime(
+    restaurantId: number,
+    year: number,
+    month?: number,
+  ): Promise<TopOrderedMenu[]> {
+    const query = this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.category', 'category')
+      .innerJoin('category.restaurant', 'restaurant')
+      .innerJoin('menu.orderDetail', 'orderDetail')
+      .where('restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('EXTRACT(YEAR FROM orderDetail.createdAt) = :year', { year })
+      .andWhere('menu.deletedAt IS NULL')
+      .andWhere('category.deletedAt IS NULL')
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .addSelect('SUM(orderDetail.quantity)', 'totalOrders')
+      .groupBy('menu.id')
+      .orderBy('totalOrders', 'DESC')
+      .limit(10);
+
+    if (month) {
+      query.andWhere('EXTRACT(MONTH FROM orderDetail.createdAt) = :month', {
+        month,
+      });
+    }
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    if (!entities || entities.length === 0) {
+      throw new NotFoundException(`Menu not found`);
+    }
+
+    return entities.map((menu, index) => ({
+      menu,
+      totalOrders: parseInt(raw[index].totalOrders),
+    }));
   }
 }

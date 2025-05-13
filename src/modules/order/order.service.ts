@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { RestaurantService } from '../restaurant/restaurant.service';
 import { DiscountService } from '../discount/discount.service';
 import { AddressService } from '../address/address.service';
+import { RevenueByYear } from './dto/output/RevenueByYear';
 
 @Injectable()
 export class OrderService {
@@ -195,5 +196,75 @@ export class OrderService {
 
     order.deletedAt = new Date();
     return await this.orderRepository.save(order);
+  }
+
+  // Thống kê tổng đơn hàng của nhà hàng theo tháng + năm hoặc năm (Tham số đầu vào là mã nhà hàng)
+  async getTotalOrderByRestaurantId(
+    restaurantId: number,
+    year: number,
+    month?: number,
+  ): Promise<number> {
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .where('order.restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('YEAR(order.createdAt) = :year', { year })
+      .andWhere('order.deletedAt IS NULL');
+
+    if (month !== undefined) {
+      query.andWhere('MONTH(order.createdAt) = :month', { month });
+    }
+
+    return await query.getCount();
+  }
+
+  // Thống kê tổng doanh thu của nhà hàng theo tháng + năm hoặc năm
+  async getTotalRevenueByRestaurantId(
+    restaurantId: number,
+    year: number,
+    month?: number,
+  ): Promise<number> {
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.totalPrice)', 'totalRevenue')
+      .where('order.restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('YEAR(order.createdAt) = :year', { year })
+      .andWhere('order.deletedAt IS NULL');
+
+    if (month !== undefined) {
+      query.andWhere('MONTH(order.createdAt) = :month', { month });
+    }
+
+    const result = await query.getRawOne();
+    return result.totalRevenue || 0;
+  }
+
+  // Thống kê tổng doanh thu của nhà hàng theo từng tháng trong năm (Tham số đầu vào là mã nhà hàng và năm)
+  async getTotalRevenueByRestaurantIdByYear(
+    restaurantId: number,
+    year: number,
+  ): Promise<RevenueByYear[]> {
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .select('MONTH(order.createdAt)', 'month')
+      .addSelect('SUM(order.totalPrice)', 'totalRevenue')
+      .where('order.restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('YEAR(order.createdAt) = :year', { year })
+      .andWhere('order.deletedAt IS NULL')
+      .groupBy('month')
+      .orderBy('month', 'ASC');
+
+    const raw = await query.getRawMany();
+
+    const result: { month: number; totalRevenue: number }[] = [];
+
+    for (let m = 1; m <= 12; m++) {
+      const found = raw.find((r) => Number(r.month) === m);
+      result.push({
+        month: m,
+        totalRevenue: found ? Number(found.totalRevenue) : 0,
+      });
+    }
+
+    return result;
   }
 }
