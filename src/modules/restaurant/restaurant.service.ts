@@ -113,28 +113,18 @@ export class RestaurantService {
   async findNearestRestaurantsByName(
     userLat: number,
     userLng: number,
-    keyword: string,
+    // keyword: string,
     limit = 10,
   ): Promise<(Restaurant & { distance: number })[]> {
-    // const cacheKey = `nearest_restaurants:${userLat}:${userLng}:${keyword}:${limit}`;
-
-    // const cacheRestaurantString = await this.cacheService.getCache(cacheKey);
-    // if (cacheRestaurantString) {
-    //   console.log('[CACHE] recommended restaurant HIT:', cacheKey);
-    //   return JSON.parse(cacheRestaurantString);
-    // }
-
-    // console.log('Cache recommended restaurant miss:', cacheKey);
-
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
-      .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
+      // .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
       .andWhere(
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
       .andWhere('restaurant.deletedAt IS NULL')
-      .andWhere('restaurant.isActivate = :isActive', { isActive: 'accepted' })
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
       .andWhere('address.deletedAt IS NULL')
       .addSelect(
         `
@@ -223,5 +213,42 @@ export class RestaurantService {
       distance: parseFloat(raw[index].distance),
     }));
     return result;
+  }
+
+  // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng (trong bảng review với tham chiếu của review trỏ đến order, order trỏ đến restaurant, restaurant và review không có quan hệ gì) cao nhất
+  async findTopRatedRestaurants(limit: number): Promise<Restaurant[]> {
+    const restaurants = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.order', 'order')
+      .leftJoinAndSelect('order.review', 'review')
+      .select('restaurant')
+      .addSelect('SUM(review.rating) AS totalRating')
+      .groupBy('restaurant.id')
+      .orderBy('totalRating', 'DESC')
+      .limit(limit)
+      .getMany();
+    if (!restaurants || restaurants.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+
+    return restaurants;
+  }
+
+  // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
+  async findMostOrderedRestaurants(limit: number): Promise<Restaurant[]> {
+    const restaurants = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.order', 'order')
+      .select('restaurant')
+      .addSelect('COUNT(order.id) AS totalOrders')
+      .groupBy('restaurant.id')
+      .orderBy('totalOrders', 'DESC')
+      .limit(limit)
+      .getMany();
+    if (!restaurants || restaurants.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+
+    return restaurants;
   }
 }
