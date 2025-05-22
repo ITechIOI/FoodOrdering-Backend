@@ -132,7 +132,7 @@ export class RestaurantService {
     return { data: restaurants, total };
   }
 
-  async findNearestRestaurantsByName(
+  async findNearestRestaurants(
     userLat: number,
     userLng: number,
     // keyword: string,
@@ -142,6 +142,51 @@ export class RestaurantService {
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
       // .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
+      .andWhere(
+        'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+      )
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere('address.deletedAt IS NULL')
+      .addSelect(
+        `
+        6371 * acos(
+          cos(radians(:userLat)) * cos(radians(address.latitude)) *
+          cos(radians(address.longitude) - radians(:userLng)) +
+          sin(radians(:userLat)) * sin(radians(address.latitude))
+        )
+      `,
+        'distance',
+      )
+      .orderBy('distance', 'ASC')
+      .limit(limit)
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    const result = entities.map((restaurant, index) => ({
+      ...restaurant,
+      distance: parseFloat(raw[index].distance),
+    }));
+
+    // await this.cacheClient.emit('restaurant.cache.set', {
+    //   cacheKey,
+    //   data: result,
+    // });
+
+    return result;
+  }
+
+  async findNearestRestaurantsByName(
+    userLat: number,
+    userLng: number,
+    keyword: string,
+    limit = 10,
+  ): Promise<(Restaurant & { distance: number })[]> {
+    const query = this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.address', 'address')
+      .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
       .andWhere(
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
@@ -274,6 +319,7 @@ export class RestaurantService {
       .select('restaurant')
       .addSelect('AVG(review.rating)', 'averageRating')
       .where('restaurant.name LIKE :name', { name: `%${name}%` })
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
       .groupBy('restaurant.id')
       .orderBy('averageRating', 'DESC')
       .limit(limit);
@@ -321,6 +367,7 @@ export class RestaurantService {
       .select('restaurant')
       .addSelect('COUNT(order.id) AS totalOrders')
       .where('restaurant.name LIKE :name', { name: `%${name}%` })
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
       .groupBy('restaurant.id')
       .orderBy('totalOrders', 'DESC')
       .limit(limit)

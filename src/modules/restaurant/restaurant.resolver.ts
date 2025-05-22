@@ -60,9 +60,24 @@ export class RestaurantResolver {
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
   ): Promise<NearestRestaurant[]> {
+    return this.restaurantService.findNearestRestaurants(
+      latitude,
+      longitude,
+      limit,
+    );
+  }
+
+  @Query(() => [NearestRestaurant])
+  async searchNearestRestaurantsByName(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('keyword', { type: () => String }) keyword: string,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
+  ): Promise<NearestRestaurant[]> {
     return this.restaurantService.findNearestRestaurantsByName(
       latitude,
       longitude,
+      keyword,
       limit,
     );
   }
