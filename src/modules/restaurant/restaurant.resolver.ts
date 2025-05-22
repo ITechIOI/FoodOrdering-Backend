@@ -28,8 +28,9 @@ export class RestaurantResolver {
   ) {
     return await this.restaurantService.findAll(page, limit);
   }
-  @Query(() => Restaurant, { name: 'restaurant' })
-  async findOne(
+
+  @Query(() => Restaurant)
+  async findRestaurantById(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Restaurant> {
     return await this.restaurantService.findOne(id);

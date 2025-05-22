@@ -434,7 +434,7 @@ type Query {
   findAddressById(id: Int!): Address!
   nearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearestAdress!]!
   restaurants(page: Int, limit: Int): PaginatedRestaurantResponse!
-  restaurant(id: Int!): Restaurant!
+  findRestaurantById(id: Int!): Restaurant!
   searchNearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 10): [NearestRestaurant!]!
   findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
   findRestaurantsByCategory(categoryName: String!, latitude: Float!, longitude: Float!, limit: Int): [NearestRestaurant!]!

@@ -27,8 +27,11 @@ export class NotificationService {
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UsersService,
   ) {
-    // this.notificationStrategy = new PushService(this.configService);
-    this.notificationStrategy = new PushService(pushRabbitClient);
+    // ✅ Truyền đầy đủ cả 2 tham số
+    this.notificationStrategy = new PushService(
+      this.pushRabbitClient,
+      this.configService,
+    );
   }
 
   async sendNotification() {
@@ -55,14 +58,19 @@ export class NotificationService {
         createNotificationDto.title,
         createNotificationDto.content,
       );
-    } else {
+    } else if (data.type === 'push') {
       // this.notificationStrategy = new PushService(this.configService);
-      this.notificationStrategy = new PushService(this.pushRabbitClient);
+      this.notificationStrategy = new PushService(
+        this.pushRabbitClient,
+        this.configService,
+      );
       this.notificationStrategy.sendNotification(
         user.fcmToken,
         createNotificationDto.title,
         createNotificationDto.content,
       );
+    } else {
+      throw new NotFoundException(`Notification type ${data.type} not found`);
     }
 
     const notification = this.notificationRepository.create({
