@@ -438,8 +438,11 @@ type Query {
   searchNearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 10): [NearestRestaurant!]!
   findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
   findRestaurantsByCategory(categoryName: String!, latitude: Float!, longitude: Float!, limit: Int): [NearestRestaurant!]!
+  findRestaurantsByName(name: String!, page: Int, limit: Int): PaginatedRestaurantResponse!
   findTopRatedRestaurants(limit: Int): [TopRatedRestaurant!]!
+  findTopRatedRestaurantsByName(name: String!, limit: Int): [TopRatedRestaurant!]!
   findMostOrderedRestaurants(limit: Int): [Restaurant!]!
+  findMostOrderedRestaurantsByName(name: String!, limit: Int): [Restaurant!]!
   searchPlace(input: String!): GoongAutoCompleteResult!
   reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
   direction(from: String!, to: String!): GoongDirectionResult!

@@ -111,6 +111,27 @@ export class RestaurantService {
     return await this.restaurantRepository.save(restaurant);
   }
 
+  async findRestaurantsByName(
+    name: string,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Restaurant>> {
+    const data = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.address', 'address')
+      .where('restaurant.name LIKE :name', { name: `%${name}%` })
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('address.deletedAt IS NULL')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    const [restaurants, total] = data;
+    if (!restaurants || restaurants.length === 0) {
+      throw new NotFoundException(`No restaurants found with name ${name}`);
+    }
+    return { data: restaurants, total };
+  }
+
   async findNearestRestaurantsByName(
     userLat: number,
     userLng: number,
@@ -242,6 +263,35 @@ export class RestaurantService {
     return result;
   }
 
+  async findTopRatedRestaurantsByName(
+    name: string,
+    limit: number,
+  ): Promise<TopRatedRestaurant[]> {
+    const query = this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .select('restaurant')
+      .addSelect('AVG(review.rating)', 'averageRating')
+      .where('restaurant.name LIKE :name', { name: `%${name}%` })
+      .groupBy('restaurant.id')
+      .orderBy('averageRating', 'DESC')
+      .limit(limit);
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    if (!entities || entities.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+
+    const result = entities.map((restaurant, index) => ({
+      restaurant,
+      averageRating: parseFloat(raw[index].averageRating),
+    }));
+
+    return result;
+  }
+
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
   async findMostOrderedRestaurants(limit: number): Promise<Restaurant[]> {
     const restaurants = await this.restaurantRepository
@@ -260,5 +310,25 @@ export class RestaurantService {
     return restaurants;
   }
 
-  
+  // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất theo tên
+  async findMostOrderedRestaurantsByName(
+    name: string,
+    limit: number,
+  ): Promise<Restaurant[]> {
+    const restaurants = await this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.order', 'order')
+      .select('restaurant')
+      .addSelect('COUNT(order.id) AS totalOrders')
+      .where('restaurant.name LIKE :name', { name: `%${name}%` })
+      .groupBy('restaurant.id')
+      .orderBy('totalOrders', 'DESC')
+      .limit(limit)
+      .getMany();
+    if (!restaurants || restaurants.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+
+    return restaurants;
+  }
 }

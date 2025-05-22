@@ -6,6 +6,7 @@ import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 import { NearestRestaurant } from './dto/output/NearestRestaurant';
 import { createPaginatedType } from 'src/utils/paginated';
 import { TopRatedRestaurant } from './dto/output/TopRatedRestaurant';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 const PaginatedRestaurantResponse = createPaginatedType(
   Restaurant,
   'PaginatedRestaurantResponse',
@@ -88,6 +89,15 @@ export class RestaurantResolver {
     );
   }
 
+  @Query(() => PaginatedRestaurantResponse)
+  async findRestaurantsByName(
+    @Args('name', { type: () => String }) name: string,
+    @Args('page', { type: () => Int, nullable: true }) page: number = 0,
+    @Args('limit', { type: () => Int, nullable: true }) limit: number = 10,
+  ): Promise<Promise<PaginatedResponse<Restaurant>>> {
+    return this.restaurantService.findRestaurantsByName(name, page, limit);
+  }
+
   // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng cao nhất
   @Query(() => [TopRatedRestaurant])
   async findTopRatedRestaurants(
@@ -96,11 +106,27 @@ export class RestaurantResolver {
     return this.restaurantService.findTopRatedRestaurants(limit);
   }
 
+  @Query(() => [TopRatedRestaurant])
+  async findTopRatedRestaurantsByName(
+    @Args('name', { type: () => String }) name: string,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<TopRatedRestaurant[]> {
+    return this.restaurantService.findTopRatedRestaurantsByName(name, limit);
+  }
+
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
   @Query(() => [Restaurant])
   async findMostOrderedRestaurants(
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
   ): Promise<Restaurant[]> {
     return this.restaurantService.findMostOrderedRestaurants(limit);
+  }
+
+  @Query(() => [Restaurant])
+  async findMostOrderedRestaurantsByName(
+    @Args('name', { type: () => String }) name: string,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<Restaurant[]> {
+    return this.restaurantService.findMostOrderedRestaurantsByName(name, limit);
   }
 }
