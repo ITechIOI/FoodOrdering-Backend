@@ -210,6 +210,18 @@ type Notification {
   receiver: Users
 }
 
+type Message {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: String
+  content: String!
+  isChecked: Boolean
+  receiver: Users
+  sender: Users
+}
+
 type Users {
   id: Int!
   createdAt: DateTime!
@@ -224,6 +236,7 @@ type Users {
   phone: String
   status: String
   fcmToken: String
+  expoMessageToken: String
   role: Roles!
   avatar: String
   otpCode: String
@@ -235,6 +248,8 @@ type Users {
   restaurants: [Restaurant!]
   address: Address
   favorite: Favorite
+  sender_messages: [Message!]
+  receiver_messages: [Message!]
 }
 
 type PaginatedUser {
@@ -309,11 +324,23 @@ type NearestRestaurant {
 type TopRatedRestaurant {
   restaurant: Restaurant!
   averageRating: Float!
+  distance: Float!
+}
+
+type BestSellingRestaurant {
+  restaurant: Restaurant!
+  totalOrders: Float!
+  distance: Float!
 }
 
 type PaginatedRestaurantResponse {
   total: Int!
   data: [Restaurant!]!
+}
+
+type PaginatedResponseNearestRestaurant {
+  total: Int!
+  data: [NearestRestaurant!]!
 }
 
 type PaginatedAddress {
@@ -439,11 +466,11 @@ type Query {
   searchNearestRestaurantsByName(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
   findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
   findRestaurantsByCategory(categoryName: String!, latitude: Float!, longitude: Float!, limit: Int): [NearestRestaurant!]!
-  findRestaurantsByName(name: String!, page: Int, limit: Int): PaginatedRestaurantResponse!
-  findTopRatedRestaurants(limit: Int): [TopRatedRestaurant!]!
-  findTopRatedRestaurantsByName(name: String!, limit: Int): [TopRatedRestaurant!]!
-  findMostOrderedRestaurants(limit: Int): [Restaurant!]!
-  findMostOrderedRestaurantsByName(name: String!, limit: Int): [Restaurant!]!
+  findRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, page: Int, limit: Int): PaginatedResponseNearestRestaurant!
+  findTopRatedRestaurants(latitude: Float!, longitude: Float!, limit: Int): [TopRatedRestaurant!]!
+  findTopRatedRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, limit: Int): [TopRatedRestaurant!]!
+  findMostOrderedRestaurants(latitude: Float!, longitude: Float!, limit: Int): [BestSellingRestaurant!]!
+  findMostOrderedRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, limit: Int): [BestSellingRestaurant!]!
   searchPlace(input: String!): GoongAutoCompleteResult!
   reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
   direction(from: String!, to: String!): GoongDirectionResult!
@@ -468,6 +495,7 @@ type Query {
   findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
   findFavoriteById(id: Int!): Favorite!
   findFavoritesByUserId(userId: Int!): [Favorite!]!
+  message(id: Int!): Message!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -523,6 +551,9 @@ type Mutation {
   createFavorite(createFavoriteInput: CreateFavoriteInput!): Favorite!
   updateFavorite(updateFavoriteInput: UpdateFavoriteInput!): Favorite!
   removeFavorite(id: Int!): Favorite!
+  sendMessageNotification(createMessageInput: CreateMessageInput!): Message!
+  updateMessage(updateMessageInput: UpdateMessageInput!): Message!
+  removeMessage(id: Int!): Message!
 }
 
 input CreateUserInput {
@@ -532,6 +563,8 @@ input CreateUserInput {
   email: String
   gender: String
   addressId: Int
+  fcmToken: String
+  expoMessageToken: String
   phone: String
   type: Int
   roleId: Int!
@@ -547,6 +580,8 @@ input UpdateUserInput {
   email: String
   gender: String
   addressId: Int
+  fcmToken: String
+  expoMessageToken: String
   phone: String
   type: Int
   roleId: Int
@@ -828,5 +863,20 @@ input CreateFavoriteInput {
 input UpdateFavoriteInput {
   restaurantId: Int
   userId: Int
+  id: Int!
+}
+
+input CreateMessageInput {
+  content: String!
+  isChecked: Boolean = false
+  receiverId: Int!
+  senderId: Int!
+}
+
+input UpdateMessageInput {
+  content: String
+  isChecked: Boolean = false
+  receiverId: Int
+  senderId: Int
   id: Int!
 }

@@ -2,12 +2,12 @@ import { ObjectType, Field, Float } from '@nestjs/graphql';
 import { Restaurant } from 'src/entities/restaurant.entity';
 
 @ObjectType()
-export class TopRatedRestaurant {
+export class BestSellingRestaurant {
   @Field(() => Restaurant)
   restaurant: Restaurant;
 
   @Field(() => Float)
-  averageRating: number;
+  totalOrders: number;
 
   @Field(() => Float)
   distance: number;

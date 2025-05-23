@@ -9,6 +9,7 @@ import { OrderDetail } from './order_detail.entity';
 import { Restaurant } from './restaurant.entity';
 import { Address } from './address.entity';
 import { Favorite } from './favorite.entity';
+import { Message } from './message.entity';
 @Entity({ name: 'users' })
 @ObjectType('Users')
 export class User extends AbstractEntity<User> {
@@ -45,6 +46,12 @@ export class User extends AbstractEntity<User> {
     nullable: true,
   })
   fcmToken: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({
+    nullable: true,
+  })
+  expoMessageToken: string;
 
   @ManyToOne(() => Role, (role) => role.users)
   @Field(() => Role)
@@ -93,4 +100,12 @@ export class User extends AbstractEntity<User> {
   @Field(() => Favorite, { nullable: true })
   @OneToMany(() => Favorite, (favorite) => favorite.user)
   favorite: Favorite[];
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany(() => Message, (message) => message.receiver)
+  sender_messages: Message[];
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany(() => Message, (message) => message.sender)
+  receiver_messages: Message[];
 }
