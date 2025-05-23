@@ -32,6 +32,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheService } from './common/cache/cache.service';
 import { ComplaintModule } from './modules/complaint/complaint.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
+import { MessageModule } from './modules/message/message.module';
 @Module({
   imports: [
     CacheModule.registerAsync({
@@ -149,6 +150,7 @@ import { FavoriteModule } from './modules/favorite/favorite.module';
     ReviewModule,
     CacheWorkerModule,
     FavoriteModule,
+    MessageModule,
   ],
   controllers: [],
   providers: [AppResolver, EmailService, CacheService],

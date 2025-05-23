@@ -7,9 +7,15 @@ import { NearestRestaurant } from './dto/output/NearestRestaurant';
 import { createPaginatedType } from 'src/utils/paginated';
 import { TopRatedRestaurant } from './dto/output/TopRatedRestaurant';
 import { PaginatedResponse } from 'src/utils/paginatedType';
+import { BestSellingRestaurant } from './dto/output/BestSellingRestaurant';
 const PaginatedRestaurantResponse = createPaginatedType(
   Restaurant,
   'PaginatedRestaurantResponse',
+);
+
+const PaginatedResponseNearestRestaurant = createPaginatedType(
+  NearestRestaurant,
+  'PaginatedResponseNearestRestaurant',
 );
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
@@ -104,44 +110,78 @@ export class RestaurantResolver {
     );
   }
 
-  @Query(() => PaginatedRestaurantResponse)
+  @Query(() => PaginatedResponseNearestRestaurant)
   async findRestaurantsByName(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
     @Args('name', { type: () => String }) name: string,
-    @Args('page', { type: () => Int, nullable: true }) page: number = 0,
+    @Args('page', { type: () => Int, nullable: true }) page: number = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit: number = 10,
-  ): Promise<Promise<PaginatedResponse<Restaurant>>> {
-    return this.restaurantService.findRestaurantsByName(name, page, limit);
+  ): Promise<Promise<PaginatedResponse<NearestRestaurant>>> {
+    return this.restaurantService.findRestaurantsByName(
+      longitude,
+      latitude,
+      name,
+      page,
+      limit,
+    );
   }
 
   // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng cao nhất
   @Query(() => [TopRatedRestaurant])
   async findTopRatedRestaurants(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<TopRatedRestaurant[]> {
-    return this.restaurantService.findTopRatedRestaurants(limit);
+  ): Promise<(TopRatedRestaurant & { distance: number })[]> {
+    return this.restaurantService.findTopRatedRestaurants(
+      latitude,
+      longitude,
+      limit,
+    );
   }
 
   @Query(() => [TopRatedRestaurant])
   async findTopRatedRestaurantsByName(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
     @Args('name', { type: () => String }) name: string,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
   ): Promise<TopRatedRestaurant[]> {
-    return this.restaurantService.findTopRatedRestaurantsByName(name, limit);
+    return this.restaurantService.findTopRatedRestaurantsByName(
+      latitude,
+      longitude,
+      name,
+      limit,
+    );
   }
 
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
-  @Query(() => [Restaurant])
+  @Query(() => [BestSellingRestaurant])
   async findMostOrderedRestaurants(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<Restaurant[]> {
-    return this.restaurantService.findMostOrderedRestaurants(limit);
+  ): Promise<BestSellingRestaurant[]> {
+    return this.restaurantService.findMostOrderedRestaurants(
+      latitude,
+      longitude,
+      limit,
+    );
   }
 
-  @Query(() => [Restaurant])
+  @Query(() => [BestSellingRestaurant])
   async findMostOrderedRestaurantsByName(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
     @Args('name', { type: () => String }) name: string,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<Restaurant[]> {
-    return this.restaurantService.findMostOrderedRestaurantsByName(name, limit);
+  ): Promise<BestSellingRestaurant[]> {
+    return this.restaurantService.findMostOrderedRestaurantsByName(
+      latitude,
+      longitude,
+      name,
+      limit,
+    );
   }
 }
