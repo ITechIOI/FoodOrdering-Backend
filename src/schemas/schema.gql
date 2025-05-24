@@ -571,6 +571,7 @@ input CreateUserInput {
   avatar: String
   otpCode: String
   otpExpiresAt: DateTime
+  status: String = "active"
 }
 
 input UpdateUserInput {
@@ -588,6 +589,7 @@ input UpdateUserInput {
   avatar: String
   otpCode: String
   otpExpiresAt: DateTime
+  status: String = "active"
   id: Int!
 }
 

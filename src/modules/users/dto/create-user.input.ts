@@ -43,4 +43,7 @@ export class CreateUserInput {
 
   @Field(() => Date, { nullable: true })
   otpExpiresAt: Date;
+
+  @Field(() => String, { nullable: true, defaultValue: 'active' })
+  status: string;
 }
