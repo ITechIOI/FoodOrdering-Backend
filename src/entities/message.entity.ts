@@ -21,4 +21,8 @@ export class Message extends AbstractEntity<Message> {
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.sender_messages)
   sender: User;
+
+  @Field(() => String, { nullable: false })
+  @Column({ nullable: true })
+  firebaseKey: string;
 }

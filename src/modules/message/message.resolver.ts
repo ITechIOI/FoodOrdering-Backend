@@ -17,28 +17,19 @@ export class MessageResolver {
     );
   }
 
-  @Query(() => [Message], { name: 'message' })
-  findAll() {
-    return this.messageService.findAll();
-  }
-
-  @Query(() => Message, { name: 'message' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.messageService.findOne(id);
-  }
-
   @Mutation(() => Message)
-  updateMessage(
+  async updateMessage(
     @Args('updateMessageInput') updateMessageInput: UpdateMessageInput,
-  ) {
-    return this.messageService.update(
+  ): Promise<Message> {
+    console.log('updateMessageInput', updateMessageInput);
+    return await this.messageService.update(
       updateMessageInput.id,
       updateMessageInput,
     );
   }
 
-  @Mutation(() => Message)
-  removeMessage(@Args('id', { type: () => Int }) id: number) {
-    return this.messageService.remove(id);
+  @Mutation(() => String)
+  async removeMessage(@Args('id', { type: () => Int }) id: number) {
+    return await this.messageService.remove(id);
   }
 }

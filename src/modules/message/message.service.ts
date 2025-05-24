@@ -44,47 +44,77 @@ export class MessageService {
     //   },
     // });
 
-    const message = this.messageRepository.create({
-      ...createMessageInput,
-      sender,
-      receiver,
-    });
-
     const roomId = [createMessageInput.senderId, createMessageInput.receiverId]
       .sort()
       .join('_');
 
-    const messageData = {
-      text: createMessageInput.content,
-      senderId: createMessageInput.senderId,
-      receiverId: createMessageInput.receiverId,
-      timestamp: Date.now(),
-    };
-
     const db = getDatabase(); // hoặc getDatabase(firebaseAdmin)
 
-    await firebaseDatabase.ref(`chats/${roomId}/messages`).push({
+    const newRef = firebaseDatabase.ref(`chats/${roomId}/messages`).push();
+    const firebaseMessageRef = firebaseDatabase
+      .ref(`chats/${roomId}/messages`)
+      .push();
+
+    const firebaseKey = firebaseMessageRef.key;
+
+    const message = this.messageRepository.create({
+      ...createMessageInput,
+      sender,
+      receiver,
+      firebaseKey,
+    });
+    const savedMessage = await this.messageRepository.save(message);
+
+    await firebaseMessageRef.set({
       text: createMessageInput.content,
       timestamp: Date.now(),
       senderId: createMessageInput.senderId,
       receiverId: createMessageInput.receiverId,
+      messageId: savedMessage.id, // 👈 Thêm vào Firebase để FE sử dụng
     });
+
     return await this.messageRepository.save(message);
   }
 
-  findAll() {
-    return `This action returns all message`;
-  }
+  async update(id: number, updateMessageInput: UpdateMessageInput) {
+    const message = await this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.sender', 'sender')
+      .leftJoinAndSelect('message.receiver', 'receiver')
+      .where('message.id = :id', { id })
+      .getOne();
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
-  }
+    if (!message) throw new NotFoundException('Message not found');
 
-  update(id: number, updateMessageInput: UpdateMessageInput) {
-    return `This action updates a #${id} message`;
+    const roomId = [message.sender.id, message.receiver.id].sort().join('_');
+    if (message.firebaseKey) {
+      await firebaseDatabase
+        .ref(`chats/${roomId}/messages/${message.firebaseKey}`)
+        .update({ text: updateMessageInput.content });
+    }
+
+    message.content = updateMessageInput.content || '';
+    return await this.messageRepository.save(message);
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} message`;
+    const message = await this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoinAndSelect('message.sender', 'sender')
+      .leftJoinAndSelect('message.receiver', 'receiver')
+      .where('message.id = :id', { id })
+      .getOne();
+
+    if (!message) throw new NotFoundException('Message not found');
+
+    const roomId = [message.sender.id, message.receiver.id].sort().join('_');
+    if (message.firebaseKey) {
+      await firebaseDatabase
+        .ref(`chats/${roomId}/messages/${message.firebaseKey}`)
+        .remove();
+    }
+
+    await this.messageRepository.remove(message);
+    return 'Message deleted successfully';
   }
 }

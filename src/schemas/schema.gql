@@ -220,6 +220,7 @@ type Message {
   isChecked: Boolean
   receiver: Users
   sender: Users
+  firebaseKey: String!
 }
 
 type Users {
@@ -512,7 +513,6 @@ type Query {
   findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
   findFavoriteById(id: Int!): Favorite!
   findFavoritesByUserId(userId: Int!): [Favorite!]!
-  message(id: Int!): Message!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -570,7 +570,7 @@ type Mutation {
   removeFavorite(id: Int!): Favorite!
   sendMessageNotification(createMessageInput: CreateMessageInput!): Message!
   updateMessage(updateMessageInput: UpdateMessageInput!): Message!
-  removeMessage(id: Int!): Message!
+  removeMessage(id: Int!): String!
 }
 
 input CreateUserInput {
