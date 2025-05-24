@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -16,7 +15,6 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileUpload } from 'graphql-upload-minimal';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from '@nestjs/cache-manager';
-import Redis from 'ioredis';
 import { ClientProxy } from '@nestjs/microservices';
 import { CacheService } from 'src/common/cache/cache.service';
 

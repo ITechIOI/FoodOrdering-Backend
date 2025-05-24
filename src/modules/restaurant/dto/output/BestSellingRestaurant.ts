@@ -11,4 +11,7 @@ export class BestSellingRestaurant {
 
   @Field(() => Float)
   distance: number;
+
+  @Field(() => Float)
+  averageRating: number;
 }
