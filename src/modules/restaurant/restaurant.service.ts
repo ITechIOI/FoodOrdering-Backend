@@ -126,6 +126,10 @@ export class RestaurantService {
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .select('restaurant')
+      .addSelect('AVG(review.rating)', 'averageRating')
       .addSelect(
         `
       6371 * acos(
@@ -140,6 +144,7 @@ export class RestaurantService {
       .where('restaurant.name LIKE :name', { name: `%${name}%` })
       .andWhere('restaurant.deletedAt IS NULL')
       .andWhere('address.deletedAt IS NULL')
+      .groupBy('restaurant.id')
       .setParameters({ userLat, userLng });
 
     const { raw, entities } = await query.getRawAndEntities();
@@ -156,6 +161,7 @@ export class RestaurantService {
     const result = paginatedEntities.map((restaurant, index) => ({
       ...restaurant,
       distance: parseFloat(paginatedRaw[index].distance),
+      averageRating: parseFloat(paginatedRaw[index].averageRating) || 0,
     }));
 
     return { data: result, total };
@@ -165,8 +171,13 @@ export class RestaurantService {
     userLat: number,
     userLng: number,
     // keyword: string,
+    page: number = 10,
     limit = 10,
-  ): Promise<(Restaurant & { distance: number })[]> {
+  ): Promise<
+    PaginatedResponse<
+      Restaurant & { distance: number } & { averageRating: number }
+    >
+  > {
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
@@ -187,34 +198,67 @@ export class RestaurantService {
       `,
         'distance',
       )
+      // Tính toán thêm đánh giá trung bình của nhà hàng
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .addSelect('AVG(review.rating)', 'averageRating')
+      .groupBy('restaurant.id')
+      .addGroupBy('address.id')
       .orderBy('distance', 'ASC')
+      .skip((page - 1) * limit)
       .limit(limit)
       .setParameters({ userLat, userLng });
 
-    const { entities, raw } = await query.getRawAndEntities();
+    // const { entities, raw } = await query.getRawAndEntities();
 
-    const result = entities.map((restaurant, index) => ({
-      ...restaurant,
-      distance: parseFloat(raw[index].distance),
-    }));
+    // const result = entities.map((restaurant, index) => ({
+    //   ...restaurant,
+    //   distance: parseFloat(raw[index].distance),
+    // }));
 
     // await this.cacheClient.emit('restaurant.cache.set', {
     //   cacheKey,
     //   data: result,
     // });
 
-    return result;
+    const { entities, raw } = await query.getRawAndEntities();
+    const total = entities.length;
+    const start = (page - 1) * limit;
+    const paginatedEntities = entities.slice(start, start + limit);
+    const paginatedRaw = raw.slice(start, start + limit);
+    if (paginatedEntities.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+    const result = paginatedEntities.map((restaurant, index) => ({
+      ...restaurant,
+      distance: parseFloat(paginatedRaw[index].distance),
+      averageRating: parseFloat(paginatedRaw[index].averageRating) || 0,
+    }));
+    const paginatedResponse: PaginatedResponse<
+      Restaurant & { distance: number; averageRating: number }
+    > = {
+      data: result,
+      total,
+    };
+    return paginatedResponse;
   }
 
   async findNearestRestaurantsByName(
     userLat: number,
     userLng: number,
     keyword: string,
+    page: number = 1,
     limit = 10,
-  ): Promise<(Restaurant & { distance: number })[]> {
+  ): Promise<
+    PaginatedResponse<Restaurant & { distance: number; averageRating: number }>
+  > {
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoinAndSelect('restaurant.address', 'address')
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .select('restaurant')
+      .addSelect('AVG(review.rating)', 'averageRating')
       .where('restaurant.name LIKE :keyword', { keyword: `%${keyword}%` })
       .andWhere(
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
@@ -232,23 +276,32 @@ export class RestaurantService {
       `,
         'distance',
       )
+      .groupBy('restaurant.id')
       .orderBy('distance', 'ASC')
+      .skip((page - 1) * limit)
       .limit(limit)
       .setParameters({ userLat, userLng });
 
     const { entities, raw } = await query.getRawAndEntities();
-
-    const result = entities.map((restaurant, index) => ({
+    const total = entities.length;
+    const start = (page - 1) * limit;
+    const paginatedEntities = entities.slice(start, start + limit);
+    const paginatedRaw = raw.slice(start, start + limit);
+    if (paginatedEntities.length === 0) {
+      throw new NotFoundException(`No restaurants found with name ${keyword}`);
+    }
+    const result = paginatedEntities.map((restaurant, index) => ({
       ...restaurant,
-      distance: parseFloat(raw[index].distance),
+      distance: parseFloat(paginatedRaw[index].distance),
+      averageRating: parseFloat(paginatedRaw[index].averageRating) || 0,
     }));
-
-    // await this.cacheClient.emit('restaurant.cache.set', {
-    //   cacheKey,
-    //   data: result,
-    // });
-
-    return result;
+    const paginatedResponse: PaginatedResponse<
+      Restaurant & { distance: number; averageRating: number }
+    > = {
+      data: result,
+      total,
+    };
+    return paginatedResponse;
   }
 
   async findRestaurantsByOwnerId(userId: number) {
@@ -273,11 +326,14 @@ export class RestaurantService {
     categoryName: string,
     userLat: number,
     userLng: number,
-    limit: number,
-  ): Promise<(Restaurant & { distance: number })[]> {
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<
+    PaginatedResponse<Restaurant & { distance: number; averageRating: number }>
+  > {
     const query = await this.restaurantRepository
       .createQueryBuilder('restaurant')
-      .leftJoinAndSelect('restaurant.categories', 'category')
+      .leftJoin('restaurant.categories', 'category')
       .leftJoinAndSelect('restaurant.address', 'address')
       // Use like to find restaurants with similar category names
       .where('category.name LIKE :categoryName', {
@@ -297,26 +353,49 @@ export class RestaurantService {
       `,
         'distance',
       )
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .addSelect('AVG(review.rating)', 'averageRating')
+      .groupBy('restaurant.id')
       .orderBy('distance', 'ASC')
       .andWhere('restaurant.deletedAt IS NULL')
+      .skip((page - 1) * limit)
       .limit(limit)
       .setParameters({ userLat, userLng });
 
-    const { entities, raw } = await query.getRawAndEntities();
-
-    const result = entities.map((restaurant, index) => ({
+    const { raw, entities } = await query.getRawAndEntities();
+    const total = entities.length;
+    const start = (page - 1) * limit;
+    const paginatedEntities = entities.slice(start, start + limit);
+    const paginatedRaw = raw.slice(start, start + limit);
+    if (paginatedEntities.length === 0) {
+      throw new NotFoundException(
+        `No restaurants found for category ${categoryName}`,
+      );
+    }
+    const result = paginatedEntities.map((restaurant, index) => ({
       ...restaurant,
-      distance: parseFloat(raw[index].distance),
+      distance: parseFloat(paginatedRaw[index].distance),
+      averageRating: parseFloat(paginatedRaw[index].averageRating) || 0,
     }));
-    return result;
+    const paginatedResponse: PaginatedResponse<
+      Restaurant & { distance: number; averageRating: number }
+    > = {
+      data: result,
+      total,
+    };
+    return paginatedResponse;
   }
 
   // Tìm kiếm nhà hàng có trung bình tổng lượt rating đơn hàng (trong bảng review với tham chiếu của review trỏ đến order, order trỏ đến restaurant, restaurant và review không có quan hệ gì) cao nhất
   async findTopRatedRestaurants(
     userLat: number,
     userLng: number,
-    limit: number,
-  ): Promise<TopRatedRestaurant[]> {
+    page = 1,
+    limit = 10, // ✅ đảm bảo có giá trị mặc định
+  ): Promise<PaginatedResponse<TopRatedRestaurant>> {
+    const offset = (page - 1) * limit;
+
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoin('restaurant.order', 'order')
@@ -342,18 +421,14 @@ export class RestaurantService {
       .addGroupBy('address.id')
       .orderBy('averageRating', 'DESC')
       .addOrderBy('distance', 'ASC')
-      .limit(limit)
-      .setParameters({ userLat, userLng });
+      .setParameters({ userLat, userLng })
+      .skip(offset)
+      .take(limit);
 
     const { raw, entities } = await query.getRawAndEntities();
 
-    if (!entities || entities.length === 0) {
-      throw new NotFoundException(`No restaurants found`);
-    }
-
     const result: TopRatedRestaurant[] = entities.map((restaurant, index) => {
       const rawData = raw[index];
-
       return {
         restaurant,
         averageRating: rawData.averageRating
@@ -363,15 +438,18 @@ export class RestaurantService {
       };
     });
 
-    return result;
+    return { data: result, total: result.length }; // (optionally improve with .getManyAndCount)
   }
 
   async findTopRatedRestaurantsByName(
     userLat: number,
     userLng: number,
     name: string,
-    limit: number,
-  ): Promise<TopRatedRestaurant[]> {
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<TopRatedRestaurant>> {
+    const offset = (page - 1) * limit;
+
     const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoin('restaurant.order', 'order')
@@ -398,18 +476,18 @@ export class RestaurantService {
       .addGroupBy('address.id')
       .orderBy('averageRating', 'DESC')
       .addOrderBy('distance', 'ASC')
-      .limit(limit)
-      .setParameters({ userLat, userLng });
+      .setParameters({ userLat, userLng })
+      .skip(offset)
+      .take(limit); // ✅ dùng take thay vì limit
 
     const { raw, entities } = await query.getRawAndEntities();
 
     if (!entities || entities.length === 0) {
-      throw new NotFoundException(`No restaurants found`);
+      throw new NotFoundException(`No restaurants found with name ${name}`);
     }
 
     const result: TopRatedRestaurant[] = entities.map((restaurant, index) => {
       const rawData = raw[index];
-
       return {
         restaurant,
         averageRating: rawData.averageRating
@@ -419,21 +497,29 @@ export class RestaurantService {
       };
     });
 
-    return result;
+    return {
+      data: result,
+      total: result.length, // Nếu muốn tổng thực sự: dùng getManyAndCount()
+    };
   }
 
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
   async findMostOrderedRestaurants(
     userLat: number,
     userLng: number,
-    limit: number,
-  ): Promise<BestSellingRestaurant[]> {
-    const { raw, entities } = await this.restaurantRepository
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<BestSellingRestaurant>> {
+    const offset = (page - 1) * limit;
+
+    const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoin('restaurant.order', 'order')
       .leftJoinAndSelect('restaurant.address', 'address')
+      .leftJoin('order.review', 'review')
       .select('restaurant')
       .addSelect('COUNT(order.id)', 'totalOrders')
+      .addSelect('AVG(review.rating)', 'averageRating')
       .addSelect(
         `
       6371 * acos(
@@ -444,39 +530,52 @@ export class RestaurantService {
     `,
         'distance',
       )
-
       .where('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere(
+        'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+      )
       .groupBy('restaurant.id')
       .addGroupBy('address.id')
       .orderBy('totalOrders', 'DESC')
       .addOrderBy('distance', 'ASC')
-      .limit(limit)
       .setParameters({ userLat, userLng })
-      .getRawAndEntities();
+      .skip(offset)
+      .take(limit); // ✅ dùng take thay vì limit
+
+    const { raw, entities } = await query.getRawAndEntities();
 
     if (!entities || entities.length === 0) {
       throw new NotFoundException(`No restaurants found`);
     }
 
-    const result = entities.map((restaurant, index) => ({
-      restaurant,
-      totalOrders: parseInt(raw[index].totalOrders, 10),
-      distance: parseFloat(raw[index].distance),
-    }));
+    const result: BestSellingRestaurant[] = entities.map(
+      (restaurant, index) => ({
+        restaurant,
+        totalOrders: parseInt(raw[index].totalOrders, 10),
+        distance: parseFloat(raw[index].distance),
+        averageRating: parseFloat(raw[index].averageRating) || 0,
+      }),
+    );
 
-    return result;
+    return {
+      data: result,
+      total: result.length, // hoặc tách `getManyAndCount()` để lấy total thật
+    };
   }
 
-  // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất theo tên
   async findMostOrderedRestaurantsByName(
     userLat: number,
     userLng: number,
     name: string,
-    limit: number,
-  ): Promise<BestSellingRestaurant[]> {
-    const { raw, entities } = await this.restaurantRepository
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<BestSellingRestaurant>> {
+    const offset = (page - 1) * limit;
+
+    const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
       .leftJoinAndSelect('restaurant.address', 'address')
       .select('restaurant')
       .addSelect('COUNT(order.id)', 'totalOrders')
@@ -490,26 +589,38 @@ export class RestaurantService {
     `,
         'distance',
       )
+      .addSelect('AVG(review.rating)', 'averageRating')
       .where('restaurant.name LIKE :name', { name: `%${name}%` })
-      .where('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere(
+        'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
+      )
       .groupBy('restaurant.id')
       .addGroupBy('address.id')
       .orderBy('totalOrders', 'DESC')
       .addOrderBy('distance', 'ASC')
-      .limit(limit)
-      .setParameters({ userLat, userLng })
-      .getRawAndEntities();
+      .skip(offset)
+      .take(limit)
+      .setParameters({ userLat, userLng });
+
+    const { raw, entities } = await query.getRawAndEntities();
 
     if (!entities || entities.length === 0) {
-      throw new NotFoundException(`No restaurants found`);
+      throw new NotFoundException(`No restaurants found with name ${name}`);
     }
 
-    const result = entities.map((restaurant, index) => ({
-      restaurant,
-      totalOrders: parseInt(raw[index].totalOrders, 10),
-      distance: parseFloat(raw[index].distance),
-    }));
+    const result: BestSellingRestaurant[] = entities.map(
+      (restaurant, index) => ({
+        restaurant,
+        totalOrders: parseInt(raw[index].totalOrders, 10),
+        distance: parseFloat(raw[index].distance),
+        averageRating: parseFloat(raw[index].averageRating) || 0,
+      }),
+    );
 
-    return result;
+    return {
+      data: result,
+      total: result.length, // Nếu muốn lấy tổng thực sự -> dùng getManyAndCount()
+    };
   }
 }

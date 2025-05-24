@@ -17,6 +17,22 @@ const PaginatedResponseNearestRestaurant = createPaginatedType(
   NearestRestaurant,
   'PaginatedResponseNearestRestaurant',
 );
+
+const PaginatedResponseTopRatedRestaurant = createPaginatedType(
+  TopRatedRestaurant,
+  'PaginatedResponseTopRatedRestaurant',
+);
+
+const PaginatedResponseFindNearestRestaurants = createPaginatedType(
+  NearestRestaurant,
+  'PaginatedResponseFindNearestRestaurants',
+);
+
+const PaginatedResponseBestSellingRestaurant = createPaginatedType(
+  BestSellingRestaurant,
+  'PaginatedResponseBestSellingRestaurant',
+);
+
 @Resolver(() => Restaurant)
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
@@ -60,30 +76,36 @@ export class RestaurantResolver {
     return await this.restaurantService.remove(id);
   }
 
-  @Query(() => [NearestRestaurant])
+  @Query(() => PaginatedResponseFindNearestRestaurants)
   async searchNearestRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('page', { type: () => Int, defaultValue: 10 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-  ): Promise<NearestRestaurant[]> {
+  ): Promise<PaginatedResponse<Restaurant & { distance: number }>> {
     return this.restaurantService.findNearestRestaurants(
       latitude,
       longitude,
+      page,
       limit,
     );
   }
 
-  @Query(() => [NearestRestaurant])
+  @Query(() => PaginatedResponseFindNearestRestaurants)
   async searchNearestRestaurantsByName(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('keyword', { type: () => String }) keyword: string,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-  ): Promise<NearestRestaurant[]> {
+  ): Promise<
+    PaginatedResponse<Restaurant & { distance: number; averageRating: number }>
+  > {
     return this.restaurantService.findNearestRestaurantsByName(
       latitude,
       longitude,
       keyword,
+      page,
       limit,
     );
   }
@@ -95,17 +117,21 @@ export class RestaurantResolver {
     return this.restaurantService.findRestaurantsByOwnerId(ownerId);
   }
 
-  @Query(() => [NearestRestaurant])
+  @Query(() => PaginatedResponseFindNearestRestaurants)
   async findRestaurantsByCategory(
     @Args('categoryName', { type: () => String }) categoryName: string,
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<NearestRestaurant[]> {
+  ): Promise<
+    PaginatedResponse<Restaurant & { distance: number; averageRating: number }>
+  > {
     return this.restaurantService.findRestaurantsByCategoryName(
       categoryName,
       latitude,
       longitude,
+      page,
       limit,
     );
   }
@@ -128,59 +154,67 @@ export class RestaurantResolver {
   }
 
   // Tìm kiếm nhà hàng có TỔNG lượt rating đơn hàng cao nhất
-  @Query(() => [TopRatedRestaurant])
+  @Query(() => PaginatedResponseTopRatedRestaurant)
   async findTopRatedRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<(TopRatedRestaurant & { distance: number })[]> {
+  ): Promise<PaginatedResponse<TopRatedRestaurant & { distance: number }>> {
     return this.restaurantService.findTopRatedRestaurants(
       latitude,
       longitude,
+      page,
       limit,
     );
   }
 
-  @Query(() => [TopRatedRestaurant])
+  @Query(() => PaginatedResponseTopRatedRestaurant)
   async findTopRatedRestaurantsByName(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('name', { type: () => String }) name: string,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<TopRatedRestaurant[]> {
+  ): Promise<PaginatedResponse<TopRatedRestaurant & { distance: number }>> {
     return this.restaurantService.findTopRatedRestaurantsByName(
       latitude,
       longitude,
       name,
+      page,
       limit,
     );
   }
 
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
-  @Query(() => [BestSellingRestaurant])
+  @Query(() => PaginatedResponseBestSellingRestaurant)
   async findMostOrderedRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<BestSellingRestaurant[]> {
+  ): Promise<PaginatedResponse<BestSellingRestaurant>> {
     return this.restaurantService.findMostOrderedRestaurants(
       latitude,
       longitude,
+      page,
       limit,
     );
   }
 
-  @Query(() => [BestSellingRestaurant])
+  @Query(() => PaginatedResponseBestSellingRestaurant)
   async findMostOrderedRestaurantsByName(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('name', { type: () => String }) name: string,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-  ): Promise<BestSellingRestaurant[]> {
+  ): Promise<PaginatedResponse<BestSellingRestaurant>> {
     return this.restaurantService.findMostOrderedRestaurantsByName(
       latitude,
       longitude,
       name,
+      page,
       limit,
     );
   }
