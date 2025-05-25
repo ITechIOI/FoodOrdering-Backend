@@ -29,11 +29,11 @@ export class NotificationResolver {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Mutation(() => Notification)
-  async createNotification(
-    @Args('createNotificationInput')
-    createNotificationInput: CreateNotificationInput,
-  ) {
-    return await this.notificationService.create(createNotificationInput);
+  async sendNotification(
+    @Args('createNotificationDto')
+    createNotificationDto: CreateNotificationInput,
+  ): Promise<Notification> {
+    return this.notificationService.create(createNotificationDto);
   }
 
   @EventPattern('otp_authentication')

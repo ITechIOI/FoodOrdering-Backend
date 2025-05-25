@@ -11,7 +11,7 @@ export class CreateNotificationInput {
   @Field(() => String)
   type: string;
 
-  @Field(() => String)
+  @Field(() => String, { defaultValue: 'unread' })
   isRead: string;
 
   @Field(() => Int)

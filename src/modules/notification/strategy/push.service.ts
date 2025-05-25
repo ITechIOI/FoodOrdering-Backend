@@ -173,7 +173,7 @@ export class PushService implements INotification {
         response: response.data,
       });
 
-      return response.data;
+      return response.data.id;
     } catch (error) {
       const msg = error.response?.data?.errors?.[0]?.message || error.message;
       console.error('❌ Expo Push API Error:', msg);

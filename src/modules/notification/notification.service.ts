@@ -47,6 +47,7 @@ export class NotificationService {
     const { userId, ...data } = createNotificationDto;
 
     const user = await this.userService.findOneById(userId);
+    console.log('User found:', user);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
@@ -65,7 +66,7 @@ export class NotificationService {
         this.configService,
       );
       this.notificationStrategy.sendNotification(
-        user.fcmToken,
+        user.expoMessageToken,
         createNotificationDto.title,
         createNotificationDto.content,
       );

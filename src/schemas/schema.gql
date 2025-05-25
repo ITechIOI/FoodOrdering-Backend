@@ -530,7 +530,7 @@ type Mutation {
   login(loginDto: CreateAuthInput!): AuthPayloadContainedId!
   requestResetPassword(email: String!): AuthPayloadContainedId!
   verifyChangePassword(token: String!, password: String!): AuthPayloadContainedId!
-  createNotification(createNotificationInput: CreateNotificationInput!): Notification!
+  sendNotification(createNotificationDto: CreateNotificationInput!): Notification!
   createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
   updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!
   removeComplaint(id: Int!): Complaint!
@@ -623,7 +623,7 @@ input CreateNotificationInput {
   title: String!
   content: String!
   type: String!
-  isRead: String!
+  isRead: String! = "unread"
   userId: Int!
 }
 
