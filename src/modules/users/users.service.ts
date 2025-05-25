@@ -82,6 +82,7 @@ export class UsersService {
   }
 
   async updateUser(id: number, updateUserInput: UpdateUserInput) {
+    console.log('Update user input:', updateUserInput);
     try {
       const user = await this.findOneById(id);
       if (!user) {
