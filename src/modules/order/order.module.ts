@@ -7,6 +7,7 @@ import { DiscountModule } from '../discount/discount.module';
 import { UsersModule } from '../users/users.module';
 import { AddressModule } from '../address/address.module';
 import { RestaurantModule } from '../restaurant/restaurant.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { RestaurantModule } from '../restaurant/restaurant.module';
     UsersModule,
     AddressModule,
     RestaurantModule,
+    NotificationModule, // Assuming NotificationModule is defined elsewhere
   ],
   providers: [OrderResolver, OrderService],
   exports: [OrderService],
