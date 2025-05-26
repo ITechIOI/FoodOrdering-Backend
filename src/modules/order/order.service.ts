@@ -9,6 +9,7 @@ import { RestaurantService } from '../restaurant/restaurant.service';
 import { DiscountService } from '../discount/discount.service';
 import { AddressService } from '../address/address.service';
 import { RevenueByYear } from './dto/output/RevenueByYear';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class OrderService {
@@ -19,6 +20,7 @@ export class OrderService {
     private readonly restaurantService: RestaurantService,
     private readonly discountService: DiscountService,
     private readonly addressService: AddressService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createOrderInput: CreateOrderInput): Promise<Order> {
@@ -69,7 +71,17 @@ export class OrderService {
       order.totalPrice = createOrderInput.shippingFee;
     }
 
-    return await this.orderRepository.save(order);
+    const newOrder = await this.orderRepository.save(order);
+
+    await this.notificationService.create({
+      userId: restaurant.owner.id,
+      title: `🛎 Đơn hàng mới từ ${restaurant.name}`,
+      content: `Bạn vừa nhận một đơn hàng mới trị giá ${newOrder.totalPrice}₫. Hãy kiểm tra ngay!`,
+      type: 'push',
+      isRead: 'unread', // optional nếu đã có default
+    });
+
+    return newOrder;
   }
 
   async findAll(
@@ -147,6 +159,54 @@ export class OrderService {
       );
     }
     return { total, data };
+  }
+
+  async updateOrderStatus(id: number, status: string): Promise<Order> {
+    const order = await this.orderRepository
+      .createQueryBuilder('order')
+      .where('order.id = :id', { id })
+      .andWhere('order.deletedAt is null')
+      .getOne();
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+
+    order.status = status;
+    const updatedOrder = await this.orderRepository.save(order);
+    const restaurant = await this.restaurantService.findOne(
+      updatedOrder.restaurant.id,
+    );
+    if (!restaurant) {
+      throw new NotFoundException(
+        `Restaurant with ID ${updatedOrder.restaurant.id} not found`,
+      );
+    }
+    if (status === 'completed' || status === 'cancelled') {
+      const notificationContent =
+        status === 'completed'
+          ? `Đơn hàng #${updatedOrder.id} đã được hoàn thành. Tổng giá trị: ${updatedOrder.totalPrice}₫. Cảm ơn bạn đã sử dụng dịch vụ!`
+          : `Đơn hàng #${updatedOrder.id} đã bị hủy. Chúng tôi xin lỗi vì sự bất tiện này.`;
+      await this.notificationService.create({
+        userId: restaurant.owner.id,
+        title: `🛎 Cập nhật đơn hàng #${updatedOrder.id}`,
+        content: notificationContent,
+        type: 'push',
+        isRead: 'unread',
+      });
+    }
+
+    if (status === 'confirmed') {
+      await this.notificationService.create({
+        userId: updatedOrder.user.id,
+        title: `🛎 Đơn hàng #${updatedOrder.id} đã được xác nhận`,
+        content: `Đơn hàng của bạn tại ${restaurant.name} đã được xác nhận. Tổng giá trị: ${updatedOrder.totalPrice}₫.`,
+        type: 'push',
+        isRead: 'unread',
+      });
+    }
+
+    return updatedOrder;
   }
 
   async update(id: number, updateOrderInput: UpdateOrderInput) {
