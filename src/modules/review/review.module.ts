@@ -10,7 +10,13 @@ import { RolesModule } from '../roles/roles.module';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Review]), OrderModule, UsersModule, JwtModule, RolesModule],
+  imports: [
+    TypeOrmModule.forFeature([Review]),
+    OrderModule,
+    UsersModule,
+    JwtModule,
+    RolesModule,
+  ],
   providers: [ReviewResolver, ReviewService, AuthGuard],
   exports: [ReviewService],
 })
