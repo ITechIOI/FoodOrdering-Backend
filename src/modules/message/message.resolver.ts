@@ -3,12 +3,15 @@ import { MessageService } from './message.service';
 import { Message } from '../../entities/message.entity';
 import { CreateMessageInput } from './dto/create-message.input';
 import { UpdateMessageInput } from './dto/update-message.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Resolver(() => Message)
 export class MessageResolver {
   constructor(private readonly messageService: MessageService) {}
 
   @Mutation(() => Message)
+  @UseGuards(AuthGuard)
   async sendMessageNotification(
     @Args('createMessageInput') createMessageInput: CreateMessageInput,
   ) {
@@ -18,6 +21,7 @@ export class MessageResolver {
   }
 
   @Mutation(() => Message)
+  @UseGuards(AuthGuard)
   async updateMessage(
     @Args('updateMessageInput') updateMessageInput: UpdateMessageInput,
   ): Promise<Message> {
@@ -29,6 +33,7 @@ export class MessageResolver {
   }
 
   @Mutation(() => String)
+  @UseGuards(AuthGuard)
   async removeMessage(@Args('id', { type: () => Int }) id: number) {
     return await this.messageService.remove(id);
   }

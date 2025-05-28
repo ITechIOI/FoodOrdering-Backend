@@ -41,6 +41,7 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard)
   async uploadAvatar(
     @Args('id', { type: () => Int }) id: number,
     @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload, // ✅ dùng type đúng
@@ -50,6 +51,7 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard)
   async updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     // console.log(updateUserInput);
     return await this.usersService.updateUser(
@@ -64,6 +66,8 @@ export class UsersResolver {
   }
 
   @Query(() => PaginatedUser)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('manager', 'admin')
   async findAllUsers(
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
@@ -73,8 +77,7 @@ export class UsersResolver {
   }
 
   @Query(() => User)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'customer')
+  @UseGuards(AuthGuard)
   async findUserById(@Args('id', { type: () => Int }) id: number) {
     console.log('Querying user by ID');
     return this.usersService.findOneById(id);
