@@ -32,6 +32,7 @@ export class RoleGuard implements CanActivate {
     // ✅ Sử dụng GqlExecutionContext để hỗ trợ GraphQL
     const ctx = GqlExecutionContext.create(context);
     const { user } = ctx.getContext().req;
+    console.log('User from request:', user);
 
     if (!user) {
       Logger.warn('User not authenticated');
@@ -54,7 +55,8 @@ export class RoleGuard implements CanActivate {
     // }
 
     let roleString;
-    const userLogin = await this.userService.findOneById(user.userId);
+    const userLogin = await this.userService.findOneById(user.id);
+    console.log('User login:', userLogin);
 
     if (!userLogin) {
       throw new NotFoundException('User not found');
@@ -65,6 +67,10 @@ export class RoleGuard implements CanActivate {
     const allow = requiredRoles.some(
       (role) => role.trim().toLowerCase() === roleString.trim().toLowerCase(),
     );
+
+    // In ra tất cả role của người dùng và role được yêu cầu
+    Logger.log(`User roles: ${roleString}`);
+    Logger.log(`Required roles: ${requiredRoles.join(', ')}`);
 
     Logger.log(`Allow user to login the system: ${allow}`);
     return allow;

@@ -4,6 +4,11 @@ import { Category } from 'src/entities/category.entity';
 import { CreateCategoryInput } from './dto/create-category.input';
 import { UpdateCategoryInput } from './dto/update-category.input';
 import { createPaginatedType } from 'src/utils/paginated';
+import { UseGuards } from '@nestjs/common';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+
 const PaginatedCategoryResponse = createPaginatedType(
   Category,
   'PaginatedCategoryResponse',
@@ -13,6 +18,8 @@ export class CategoryResolver {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Mutation(() => Category)
+  @UseGuards(AuthGuard, RoleGuard) // Bảo vệ bằng AuthGuard và RoleGuard
+  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc customer
   async createCategory(
     @Args('createCategoryInput') createCategoryInput: CreateCategoryInput,
   ): Promise<Category> {
@@ -34,6 +41,8 @@ export class CategoryResolver {
   }
 
   @Mutation(() => Category)
+  @UseGuards(AuthGuard, RoleGuard) // Bảo vệ bằng AuthGuard và RoleGuard
+  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc customer
   async updateCategory(
     @Args('updateCategoryInput') updateCategoryInput: UpdateCategoryInput,
   ): Promise<Category> {
@@ -44,6 +53,8 @@ export class CategoryResolver {
   }
 
   @Mutation(() => Category)
+  @UseGuards(AuthGuard, RoleGuard) // Bảo vệ bằng AuthGuard và RoleGuard
+  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc customer
   async removeCategory(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Category> {

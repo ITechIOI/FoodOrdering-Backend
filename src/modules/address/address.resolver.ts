@@ -14,6 +14,8 @@ import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
 import { createPaginatedType } from 'src/utils/paginated';
 import { Restaurant } from 'src/entities/restaurant.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 const PaginatedAddress = createPaginatedType(Address, 'PaginatedAddress');
 @ObjectType()
@@ -27,6 +29,7 @@ export class AddressResolver {
   constructor(private readonly addressService: AddressService) {}
 
   @Mutation(() => Address)
+  @UseGuards(AuthGuard)
   async createAddress(
     @Args('createAddressInput') createAddressInput: CreateAddressInput,
   ): Promise<Address> {
@@ -34,6 +37,7 @@ export class AddressResolver {
   }
 
   @Query(() => PaginatedAddress)
+  @UseGuards(AuthGuard)
   async findAllAddresses(
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
@@ -43,11 +47,13 @@ export class AddressResolver {
 
   // thuộc tính name trong @Query() sẽ là tên của query trong GraphQL
   @Query(() => Address, { name: 'findAddressById' })
+  @UseGuards(AuthGuard)
   async findAddressById(@Args('id', { type: () => Int }) id: number) {
     return this.addressService.findOneAddress(id);
   }
 
   @Mutation(() => Address, { name: 'updateAddress' })
+  @UseGuards(AuthGuard)
   async updateAddress(
     @Args('updateAddressInput') updateAddressInput: UpdateAddressInput,
   ) {
@@ -58,6 +64,7 @@ export class AddressResolver {
   }
 
   @Mutation(() => Address)
+  @UseGuards(AuthGuard)
   removeAddress(@Args('id', { type: () => Int }) id: number) {
     return this.addressService.remove(id);
   }
@@ -77,6 +84,7 @@ export class AddressResolver {
   // }
 
   @Query(() => [NearestAdress])
+  @UseGuards(AuthGuard)
   async nearestRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,

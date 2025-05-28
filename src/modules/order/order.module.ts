@@ -8,17 +8,22 @@ import { UsersModule } from '../users/users.module';
 import { AddressModule } from '../address/address.module';
 import { RestaurantModule } from '../restaurant/restaurant.module';
 import { NotificationModule } from '../notification/notification.module';
+import { RolesModule } from '../roles/roles.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order]),
     DiscountModule,
     UsersModule,
+    RolesModule,
+    JwtModule,
     AddressModule,
     RestaurantModule,
     NotificationModule, // Assuming NotificationModule is defined elsewhere
   ],
-  providers: [OrderResolver, OrderService],
+  providers: [OrderResolver, OrderService, AuthGuard],
   exports: [OrderService],
 })
 export class OrderModule {}
