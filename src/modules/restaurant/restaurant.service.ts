@@ -331,11 +331,14 @@ export class RestaurantService {
   ): Promise<
     PaginatedResponse<Restaurant & { distance: number; averageRating: number }>
   > {
-    const query = await this.restaurantRepository
+    const offset = (page - 1) * limit;
+
+    const query = this.restaurantRepository
       .createQueryBuilder('restaurant')
       .leftJoin('restaurant.categories', 'category')
       .leftJoinAndSelect('restaurant.address', 'address')
-      // Use like to find restaurants with similar category names
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
       .where('category.name LIKE :categoryName', {
         categoryName: `%${categoryName}%`,
       })
@@ -343,48 +346,45 @@ export class RestaurantService {
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
       .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere('restaurant.deletedAt IS NULL')
       .addSelect(
         `
-        6371 * acos(
-          cos(radians(:userLat)) * cos(radians(address.latitude)) *
-          cos(radians(address.longitude) - radians(:userLng)) +
-          sin(radians(:userLat)) * sin(radians(address.latitude))
-        )
-      `,
+      6371 * acos(
+        cos(radians(:userLat)) * cos(radians(address.latitude)) *
+        cos(radians(address.longitude) - radians(:userLng)) +
+        sin(radians(:userLat)) * sin(radians(address.latitude))
+      )
+    `,
         'distance',
       )
-      .leftJoin('restaurant.order', 'order')
-      .leftJoin('order.review', 'review')
       .addSelect('AVG(review.rating)', 'averageRating')
       .groupBy('restaurant.id')
+      .addGroupBy('address.id') // thêm groupBy nếu address có nhiều field
       .orderBy('distance', 'ASC')
-      .andWhere('restaurant.deletedAt IS NULL')
-      .skip((page - 1) * limit)
-      .limit(limit)
+      .skip(offset) // ✅ phải có skip
+      .take(limit) // ✅ phải có take
       .setParameters({ userLat, userLng });
 
-    const { raw, entities } = await query.getRawAndEntities();
-    const total = entities.length;
-    const start = (page - 1) * limit;
-    const paginatedEntities = entities.slice(start, start + limit);
-    const paginatedRaw = raw.slice(start, start + limit);
-    if (paginatedEntities.length === 0) {
+    const [entities, total] = await query.getManyAndCount(); // ✅ dùng getManyAndCount để hỗ trợ phân trang
+
+    if (entities.length === 0) {
       throw new NotFoundException(
         `No restaurants found for category ${categoryName}`,
       );
     }
-    const result = paginatedEntities.map((restaurant, index) => ({
+
+    // Lấy lại raw dữ liệu distance & rating từ raw SQL
+    const raw = await query.getRawMany();
+    const result = entities.map((restaurant, index) => ({
       ...restaurant,
-      distance: parseFloat(paginatedRaw[index].distance),
-      averageRating: parseFloat(paginatedRaw[index].averageRating) || 0,
+      distance: parseFloat(raw[index]?.distance) || 0,
+      averageRating: parseFloat(raw[index]?.averageRating) || 0,
     }));
-    const paginatedResponse: PaginatedResponse<
-      Restaurant & { distance: number; averageRating: number }
-    > = {
+
+    return {
       data: result,
       total,
     };
-    return paginatedResponse;
   }
 
   // Tìm kiếm nhà hàng có trung bình tổng lượt rating đơn hàng (trong bảng review với tham chiếu của review trỏ đến order, order trỏ đến restaurant, restaurant và review không có quan hệ gì) cao nhất
