@@ -8,10 +8,6 @@ import { createPaginatedType } from 'src/utils/paginated';
 import { TopRatedRestaurant } from './dto/output/TopRatedRestaurant';
 import { PaginatedResponse } from 'src/utils/paginatedType';
 import { BestSellingRestaurant } from './dto/output/BestSellingRestaurant';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
-import { UseGuards } from '@nestjs/common';
 const PaginatedRestaurantResponse = createPaginatedType(
   Restaurant,
   'PaginatedRestaurantResponse',
@@ -42,8 +38,6 @@ export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
 
   @Mutation(() => Restaurant)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager')
   async createRestaurant(
     @Args('createRestaurantInput') createRestaurantInput: CreateRestaurantInput,
   ): Promise<Restaurant> {
@@ -66,8 +60,6 @@ export class RestaurantResolver {
   }
 
   @Mutation(() => Restaurant)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager')
   async updateRestaurant(
     @Args('updateRestaurantInput') updateRestaurantInput: UpdateRestaurantInput,
   ): Promise<Restaurant> {
@@ -78,8 +70,6 @@ export class RestaurantResolver {
   }
 
   @Mutation(() => Restaurant)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager')
   async removeRestaurant(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Restaurant> {

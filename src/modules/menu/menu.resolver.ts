@@ -30,7 +30,6 @@ export class MenuResolver {
   }
 
   @Query(() => PaginatedMenuResponse, { name: 'menus' }) // ✅ Phân trang
-  @UseGuards(AuthGuard)
   async findAll(
     @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
@@ -39,13 +38,11 @@ export class MenuResolver {
   }
 
   @Query(() => [Menu])
-  @UseGuards(AuthGuard)
   async findAllNotPaginate(): Promise<Menu[]> {
     return await this.menuService.findAllNotPaginate();
   }
 
   @Query(() => Menu, { name: 'menu' })
-  @UseGuards(AuthGuard)
   async findOne(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
     return await this.menuService.findOne(id);
   }
@@ -68,7 +65,6 @@ export class MenuResolver {
 
   // find menus by categoryId
   @Query(() => [Menu])
-  @UseGuards(AuthGuard)
   async findMenusByCategoryId(
     @Args('categoryId', { type: () => Int }) categoryId: number,
   ): Promise<Menu[]> {
@@ -76,7 +72,6 @@ export class MenuResolver {
   }
 
   @Query(() => [NearbyMenuItem])
-  @UseGuards(AuthGuard)
   async searchNearestItemByKeyword(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
@@ -92,7 +87,6 @@ export class MenuResolver {
   }
 
   @Query(() => [NearbyMenuItem])
-  @UseGuards(AuthGuard)
   async searchNearestMenuItems(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
@@ -102,7 +96,6 @@ export class MenuResolver {
   }
 
   @Query(() => [Menu])
-  @UseGuards(AuthGuard)
   async findMenusByImageUrl(
     @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
     @Args({ name: 'limit', type: () => Int }) limit: number,
@@ -112,7 +105,6 @@ export class MenuResolver {
 
   // Tìm kiếm top 10 món ăn được đặt hàng nhiều nhất tại nhà hàng X
   @Query(() => [TopOrderedMenu])
-  @UseGuards(AuthGuard)
   async findTop10MenuByRestaurantId(
     @Args('restaurantId', { type: () => Int }) restaurantId: number,
     @Args('year', { type: () => Int }) year: number,

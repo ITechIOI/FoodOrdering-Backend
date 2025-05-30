@@ -13,14 +13,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Restaurant]),
-    AddressModule,
-    UsersModule,
-    RolesModule,
-    JwtModule,
-  ],
-  providers: [RestaurantResolver, RestaurantService, CacheService, AuthGuard],
+  imports: [TypeOrmModule.forFeature([Restaurant]), AddressModule, UsersModule],
+  providers: [RestaurantResolver, RestaurantService, CacheService],
   exports: [RestaurantService],
 })
 export class RestaurantModule {}
