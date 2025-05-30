@@ -27,8 +27,15 @@ export class MenuService {
   }
 
   async create(createMenuInput: CreateMenuInput): Promise<Menu> {
-    const { name, description, price, imageUrl, available, categoryId } =
-      createMenuInput;
+    const {
+      name,
+      description,
+      price,
+      quantity,
+      imageUrl,
+      available,
+      categoryId,
+    } = createMenuInput;
 
     const category = await this.categoryService.findOne(categoryId);
     if (!category) {
@@ -39,6 +46,7 @@ export class MenuService {
       name,
       description,
       price,
+      quantity,
       imageUrl,
       available,
       category,
