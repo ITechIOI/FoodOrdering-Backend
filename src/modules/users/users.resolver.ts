@@ -11,6 +11,10 @@ import {
   Upload,
 } from 'graphql-upload-minimal';
 import { createPaginatedType } from 'src/utils/paginated';
+import { UseGuards } from '@nestjs/common';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 
@@ -23,6 +27,7 @@ const PaginatedUser = createPaginatedType(User, 'PaginatedUser');
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
+  // Không sử dụng phương thức này để đăng ký tài khoản
   @Mutation(() => User)
   // @UseGuards(AuthGuard, RoleGuard)
   // @Roles('manager', 'customer')
@@ -36,18 +41,23 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
+  @UseGuards(AuthGuard)
   async uploadAvatar(
     @Args('id', { type: () => Int }) id: number,
-    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload,
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload, // ✅ dùng type đúng
   ): Promise<User> {
-    console.log('Resolved file:', file);
-    return this.usersService.updateAvatar(id, file);
+    console.log('Resolved file:', file); // 👍 chính là file rồi
+    return await this.usersService.updateAvatar(id, file); // truyền trực tiếp
   }
 
   @Mutation(() => User)
-  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+  @UseGuards(AuthGuard)
+  async updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     // console.log(updateUserInput);
-    return this.usersService.updateUser(updateUserInput.id, updateUserInput);
+    return await this.usersService.updateUser(
+      updateUserInput.id,
+      updateUserInput,
+    );
   }
 
   @Mutation(() => User)
@@ -56,6 +66,8 @@ export class UsersResolver {
   }
 
   @Query(() => PaginatedUser)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('manager', 'admin')
   async findAllUsers(
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,
@@ -65,8 +77,7 @@ export class UsersResolver {
   }
 
   @Query(() => User)
-  // @UseGuards(AuthGuard, RoleGuard)
-  // @Roles('manager', 'customer')
+  @UseGuards(AuthGuard)
   async findUserById(@Args('id', { type: () => Int }) id: number) {
     console.log('Querying user by ID');
     return this.usersService.findOneById(id);

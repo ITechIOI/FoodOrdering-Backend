@@ -33,6 +33,7 @@ export class CategoryService {
     const category = this.categoryRepository.create({
       name,
       restaurant: restaurant ?? undefined,
+      isActive: createCategoryInput.isActive,
     });
 
     return this.categoryRepository.save(category);
@@ -70,6 +71,10 @@ export class CategoryService {
 
     if (updateCategoryInput.name) {
       category.name = updateCategoryInput.name;
+    }
+
+    if (updateCategoryInput.isActive) {
+      category.isActive = updateCategoryInput.isActive;
     }
 
     if (updateCategoryInput.restaurantId) {

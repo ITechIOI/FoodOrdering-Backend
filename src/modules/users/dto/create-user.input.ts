@@ -21,6 +21,12 @@ export class CreateUserInput {
   addressId: number;
 
   @Field(() => String, { nullable: true })
+  fcmToken: string;
+
+  @Field(() => String, { nullable: true })
+  expoMessageToken: string;
+
+  @Field(() => String, { nullable: true })
   phone: string;
 
   @Field(() => Int, { nullable: true })
@@ -37,4 +43,7 @@ export class CreateUserInput {
 
   @Field(() => Date, { nullable: true })
   otpExpiresAt: Date;
+
+  @Field(() => String, { nullable: true, defaultValue: 'active' })
+  status: string;
 }

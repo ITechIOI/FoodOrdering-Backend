@@ -1,56 +1,59 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as admin from 'firebase-admin';
+import axios from 'axios';
+import { ClientRMQ } from '@nestjs/microservices';
 
-// Firebase Configuration
 @Injectable()
-export class PushService implements OnModuleInit, INotification {
-  private projectId;
-  private clientEmail;
-  private privateKey;
+export class PushService implements INotification {
+  constructor(
+    @Inject('PUSH_NOTIFICATION_SERVICE') private rabbitClient: ClientRMQ,
+    private readonly configService: ConfigService,
+  ) {}
 
-  constructor(private readonly configService: ConfigService) {
-    this.projectId = this.configService.get<string>('FIREBASE_PROJECT_ID');
-    this.clientEmail = this.configService.get<string>('FIREBASE_CLIENT_EMAIL');
-    this.privateKey = this.configService
-      .get<string>('FIREBASE_PRIVATE_KEY')
-      ?.replace(/\\n/g, '\n');
-  }
-
-  onModuleInit() {
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: this.projectId,
-          clientEmail: this.clientEmail,
-          privateKey: this.privateKey,
-        }),
-      });
+  async sendNotification(
+    expoToken: string,
+    title: string,
+    body: string,
+    imageUrl?: string,
+    data?: Record<string, string>,
+  ): Promise<any> {
+    if (!expoToken || !expoToken.startsWith('ExponentPushToken')) {
+      throw new Error('❌ Invalid Expo push token');
     }
-  }
 
-  async sendNotification(to: string, subject: string, message: string) {
-    const payload: admin.messaging.Message = {
-      token: to,
-      notification: {
-        title: subject,
-        body: message,
-      },
-      android: {
-        priority: 'high',
-      },
-      apns: {
-        headers: {
-          'apns-priority': '10',
-        },
-      },
+    const messagePayload = {
+      to: expoToken,
+      sound: 'default',
+      title,
+      body,
+      ...(imageUrl && { image: imageUrl }),
+      ...(data && { data }),
     };
 
     try {
-      const response = await admin.messaging().send(payload);
-      return response; // ID của thông báo đã gửi
+      const response = await axios.post(
+        'https://exp.host/--/api/v2/push/send',
+        messagePayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      // Emit log or save message status
+      this.rabbitClient.emit('push_notification', {
+        token: expoToken,
+        payload: messagePayload,
+        response: response.data,
+      });
+
+      return response.data.id;
     } catch (error) {
-      throw new Error(`FCM send failed: ${error.message}`);
+      const msg = error.response?.data?.errors?.[0]?.message || error.message;
+      console.error('❌ Expo Push API Error:', msg);
+      console.error('Payload that caused error:', messagePayload);
+      throw new Error(`Expo push failed: ${msg}`);
     }
   }
 }

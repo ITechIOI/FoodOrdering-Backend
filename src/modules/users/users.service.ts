@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -16,7 +15,6 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { FileUpload } from 'graphql-upload-minimal';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from '@nestjs/cache-manager';
-import Redis from 'ioredis';
 import { ClientProxy } from '@nestjs/microservices';
 import { CacheService } from 'src/common/cache/cache.service';
 
@@ -42,6 +40,7 @@ export class UsersService {
       const newUser = this.userRepository.create({
         ...createUserInput,
         role,
+        status: 'inactive',
       });
       const savedUser = await this.userRepository.save(newUser);
       if (!savedUser.id) {
@@ -54,27 +53,36 @@ export class UsersService {
   }
 
   async findOneByUsername(username: string): Promise<User | null> {
-    return await this.userRepository.findOne({
-      where: { username, deletedAt: IsNull() },
-      relations: ['role'],
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .andWhere('user.deletedAt IS NULL')
+      .andWhere('user.status = :status', { status: 'active' })
+      .leftJoinAndSelect('user.role', 'role')
+      .getOne();
+    console.log('User found:', user);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async findOneByOtp(otp: string): Promise<User | null> {
     return await this.userRepository.findOne({
-      where: { otpCode: otp },
+      where: { otpCode: otp, deletedAt: IsNull() },
       relations: ['role'],
     });
   }
 
   async findOneByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findOne({
-      where: { email, deletedAt: IsNull() },
+      where: { email, deletedAt: IsNull(), status: 'active' },
       relations: ['role'],
     });
   }
 
   async updateUser(id: number, updateUserInput: UpdateUserInput) {
+    console.log('Update user input:', updateUserInput);
     try {
       const user = await this.findOneById(id);
       if (!user) {
@@ -168,35 +176,44 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  async findOneById(id: number): Promise<User | null> {
-    try {
-      const cacheKey = `user:detail:${id}`;
-      const cacheUserString = await this.cacheService.getCache(cacheKey);
-      // console.log('Raw data', cacheUserString);
+  // Phương thức này sẽ được sử dụng khi thực hiện tính năng cache thông tin của người dùng
+  // async findOneById(id: number): Promise<User | null> {
+  //   try {
+  //     const cacheKey = `user:detail:${id}`;
+  //     const cacheUserString = await this.cacheService.getCache(cacheKey);
+  //     // console.log('Raw data', cacheUserString);
 
-      if (cacheUserString) {
-        console.log('[CACHE] HIT:', cacheKey);
-        return JSON.parse(cacheUserString);
-      }
-      console.log('Cache miss:', cacheKey);
+  //     if (cacheUserString) {
+  //       console.log('[CACHE] HIT:', cacheKey);
+  //       return JSON.parse(cacheUserString);
+  //     }
+  //     console.log('Cache miss:', cacheKey);
 
-      const user = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.role', 'role')
-        .where('user.id = :id', { id })
-        .andWhere('user.deletedAt IS NULL')
-        .getOne();
+  //     const user = await this.userRepository.findOne({
+  //       where: { id, deletedAt: IsNull() },
+  //       relations: ['role'],
+  //     });
+  //     if (!user) {
+  //       throw new NotFoundException('User not found');
+  //     }
 
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+  //     // await this.cacheService.setCache(cacheKey, JSON.stringify(user), 30000);
+  //     await this.cacheClient.emit('user.cache.set', JSON.stringify(user));
+  //     return user;
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
 
-      // await this.cacheService.setCache(cacheKey, JSON.stringify(user), 30000);
-      await this.cacheClient.emit('user.cache.set', JSON.stringify(user));
-      return user;
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
+  async findOneById(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: ['role'],
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    return user;
   }
 
   async findAllUser(

@@ -10,7 +10,7 @@ import { CacheService } from 'src/common/cache/cache.service';
       isGlobal: true,
       useFactory: async () => ({
         store: redisStore,
-        host: 'localhost',
+        host: 'redis-service',
         port: 6379,
         ttl: 6000,
       }),

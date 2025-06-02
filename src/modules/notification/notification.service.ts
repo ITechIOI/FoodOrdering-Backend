@@ -21,12 +21,17 @@ export class NotificationService {
 
   constructor(
     @Inject('NOTIFICATION_SERVICE') private rabbitClient: ClientRMQ,
+    @Inject('PUSH_NOTIFICATION_SERVICE') private pushRabbitClient: ClientRMQ,
     private readonly configService: ConfigService,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly userService: UsersService,
   ) {
-    this.notificationStrategy = new PushService(this.configService);
+    // ✅ Truyền đầy đủ cả 2 tham số
+    this.notificationStrategy = new PushService(
+      this.pushRabbitClient,
+      this.configService,
+    );
   }
 
   async sendNotification() {
@@ -42,6 +47,7 @@ export class NotificationService {
     const { userId, ...data } = createNotificationDto;
 
     const user = await this.userService.findOneById(userId);
+    console.log('User found:', user);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
@@ -53,13 +59,19 @@ export class NotificationService {
         createNotificationDto.title,
         createNotificationDto.content,
       );
-    } else {
-      this.notificationStrategy = new PushService(this.configService);
+    } else if (data.type === 'push') {
+      // this.notificationStrategy = new PushService(this.configService);
+      this.notificationStrategy = new PushService(
+        this.pushRabbitClient,
+        this.configService,
+      );
       this.notificationStrategy.sendNotification(
-        user.email,
+        user.expoMessageToken,
         createNotificationDto.title,
         createNotificationDto.content,
       );
+    } else {
+      throw new NotFoundException(`Notification type ${data.type} not found`);
     }
 
     const notification = this.notificationRepository.create({

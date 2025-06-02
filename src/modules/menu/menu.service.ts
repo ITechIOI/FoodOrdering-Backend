@@ -12,6 +12,7 @@ import * as FormData from 'form-data';
 import axios from 'axios';
 
 import { PaginatedResponse } from 'src/utils/paginatedType';
+import { TopOrderedMenu } from './dto/output/TopOrderedMenu';
 
 @Injectable()
 export class MenuService {
@@ -26,8 +27,15 @@ export class MenuService {
   }
 
   async create(createMenuInput: CreateMenuInput): Promise<Menu> {
-    const { name, description, price, imageUrl, available, categoryId } =
-      createMenuInput;
+    const {
+      name,
+      description,
+      price,
+      quantity,
+      imageUrl,
+      available,
+      categoryId,
+    } = createMenuInput;
 
     const category = await this.categoryService.findOne(categoryId);
     if (!category) {
@@ -38,6 +46,7 @@ export class MenuService {
       name,
       description,
       price,
+      quantity,
       imageUrl,
       available,
       category,
@@ -192,6 +201,52 @@ export class MenuService {
     }));
   }
 
+  async findNearestMenuItems(
+    userLat: number,
+    userLng: number,
+    limit = 20,
+  ): Promise<
+    (Menu & {
+      distance: number;
+      restaurantName: string;
+      categoryName: string;
+    })[]
+  > {
+    const query = this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.category', 'category')
+      .innerJoin('category.restaurant', 'restaurant')
+      .innerJoin('restaurant.address', 'address')
+      .where('address.latitude IS NOT NULL AND address.longitude IS NOT NULL')
+      .andWhere('menu.deletedAt IS NULL')
+      .andWhere('category.deletedAt IS NULL')
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('address.deletedAt IS NULL')
+      .addSelect([
+        'restaurant.name AS restaurantName',
+        'category.name AS categoryName',
+        `
+        6371 * acos(
+          cos(radians(:userLat)) * cos(radians(address.latitude)) *
+          cos(radians(address.longitude) - radians(:userLng)) +
+          sin(radians(:userLat)) * sin(radians(address.latitude))
+        ) AS distance
+        `,
+      ])
+      .orderBy('distance', 'ASC')
+      .limit(limit)
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    return entities.map((menuItem, index) => ({
+      ...menuItem,
+      restaurantName: raw[index].restaurantName,
+      categoryName: raw[index].categoryName,
+      distance: parseFloat(raw[index].distance),
+    }));
+  }
+
   // get the list of menus by fast api that has the nearest distance to the user by limit
   async findMenuByImage(file: FileUpload, limit: number = 10): Promise<Menu[]> {
     const { createReadStream, filename, mimetype } = file;
@@ -229,5 +284,45 @@ export class MenuService {
       );
       throw new Error('FastAPI upload failed');
     }
+  }
+
+  // Tìm kiếm top 10 món ăn được đặt hàng nhiều nhất tại nhà hàng X (Tham số đầu vào là mã nhà hàng và tháng+năm cần tìm) theo tháng
+  async findTop10MenuItemsByRestaurantIdByTime(
+    restaurantId: number,
+    year: number,
+    month?: number,
+  ): Promise<TopOrderedMenu[]> {
+    const query = this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('menu.category', 'category')
+      .innerJoin('category.restaurant', 'restaurant')
+      .innerJoin('menu.orderDetail', 'orderDetail')
+      .where('restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('EXTRACT(YEAR FROM orderDetail.createdAt) = :year', { year })
+      .andWhere('menu.deletedAt IS NULL')
+      .andWhere('category.deletedAt IS NULL')
+      .andWhere('restaurant.deletedAt IS NULL')
+      .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .addSelect('SUM(orderDetail.quantity)', 'totalOrders')
+      .groupBy('menu.id')
+      .orderBy('totalOrders', 'DESC')
+      .limit(10);
+
+    if (month) {
+      query.andWhere('EXTRACT(MONTH FROM orderDetail.createdAt) = :month', {
+        month,
+      });
+    }
+
+    const { entities, raw } = await query.getRawAndEntities();
+
+    if (!entities || entities.length === 0) {
+      throw new NotFoundException(`Menu not found`);
+    }
+
+    return entities.map((menu, index) => ({
+      menu,
+      totalOrders: parseInt(raw[index].totalOrders),
+    }));
   }
 }

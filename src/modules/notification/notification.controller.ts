@@ -8,6 +8,10 @@ import {
   MessagePattern,
 } from '@nestjs/microservices';
 import { CreateNotificationInput } from './dto/create-notification.input';
+import axios from 'axios';
+import { Mutation } from '@nestjs/graphql';
+import { PushService } from './strategy/push.service';
+import { Notification } from 'src/entities/notification.entity';
 
 @Controller('notification')
 export class NotificationController {
@@ -56,5 +60,22 @@ export class NotificationController {
     await this.notificationService.create(createNotification);
 
     console.log('Payment', message);
+  }
+
+  @EventPattern('push_notification')
+  async handlePushNotification(
+    @Payload() data: [string, object, { headers: object }],
+  ) {
+    try {
+      const [url, message, headers] = data;
+
+      console.log('📨 Nhận dữ liệu từ RabbitMQ:', { url, message, headers });
+
+      // Gửi request đến FCM
+      // const response = await axios.post(url, message, headers);
+      // console.log('📨 Đã gửi thông báo đến FCM:', response.data);
+    } catch (error) {
+      throw new Error('Error push notification');
+    }
   }
 }

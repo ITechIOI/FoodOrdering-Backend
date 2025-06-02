@@ -5,4 +5,7 @@ import { Restaurant } from 'src/entities/restaurant.entity';
 export class NearestRestaurant extends Restaurant {
   @Field(() => Float)
   distance: number;
+
+  @Field(() => Float, { nullable: true })
+  averageRating: number;
 }

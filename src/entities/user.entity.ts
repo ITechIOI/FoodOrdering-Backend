@@ -8,6 +8,8 @@ import { Notification } from './notification.entity';
 import { OrderDetail } from './order_detail.entity';
 import { Restaurant } from './restaurant.entity';
 import { Address } from './address.entity';
+import { Favorite } from './favorite.entity';
+import { Message } from './message.entity';
 @Entity({ name: 'users' })
 @ObjectType('Users')
 export class User extends AbstractEntity<User> {
@@ -35,9 +37,21 @@ export class User extends AbstractEntity<User> {
   @Column({ nullable: true })
   phone: string;
 
-  @Field(() => Int, { nullable: true })
-  @Column({ nullable: true })
-  type: number;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, default: 'inactive' })
+  status: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({
+    nullable: true,
+  })
+  fcmToken: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({
+    nullable: true,
+  })
+  expoMessageToken: string;
 
   @ManyToOne(() => Role, (role) => role.users)
   @Field(() => Role)
@@ -56,7 +70,7 @@ export class User extends AbstractEntity<User> {
   otpExpiresAt: Date;
 
   @Field(() => [Order], { nullable: true })
-  @ManyToOne(() => Order, (order) => order.user)
+  @OneToMany(() => Order, (order) => order.user)
   order: Order[];
 
   @Field(() => [Complaint], { nullable: true })
@@ -82,4 +96,16 @@ export class User extends AbstractEntity<User> {
   @Field(() => Address, { nullable: true })
   @ManyToOne(() => Address, (address) => address.user)
   address: Address;
+
+  @Field(() => Favorite, { nullable: true })
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorite: Favorite[];
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany(() => Message, (message) => message.receiver)
+  sender_messages: Message[];
+
+  @Field(() => [Message], { nullable: true })
+  @OneToMany(() => Message, (message) => message.sender)
+  receiver_messages: Message[];
 }

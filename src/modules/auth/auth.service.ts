@@ -8,6 +8,8 @@ import { UpdateUserInput } from '../users/dto/update-user.input';
 import { AuthPayload } from 'src/utils/authpayload';
 import { NotificationService } from '../notification/notification.service';
 import { CreateNotificationInput } from '../notification/dto/create-notification.input';
+import { User } from 'src/entities/user.entity';
+import { AuthPayloadContainedId } from 'src/utils/authpayloadcontainedid';
 
 @Injectable()
 export class AuthService {
@@ -17,39 +19,25 @@ export class AuthService {
     private notificationService: NotificationService,
   ) {}
 
-  async register(createUser: CreateUserInput) {
-    const hashedPassword = await bcrypt.hash(createUser.password, 10);
-    return await this.userService.create({
-      ...createUser,
-      password: hashedPassword,
-    });
-  }
-
   private generateOTP(): string {
     return Math.random().toString(36).substring(2, 7).toUpperCase(); // Ví dụ: "A1B2C"
   }
 
-  async login(loginDto: CreateAuthInput): Promise<AuthPayload> {
-    const { username, password } = loginDto;
-    const user = await this.userService.findOneByUsername(username);
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  async register(createUser: CreateUserInput): Promise<AuthPayloadContainedId> {
+    const hashedPassword = await bcrypt.hash(createUser.password, 10);
 
     // Tạo mã OTP và lưu vào database
     const otp = this.generateOTP();
-    const newUser: UpdateUserInput = {
-      ...user,
-      otpCode: otp,
-      roleId: user.role.id,
-    };
+
     let message: string = `Your OTP code is: ${otp} (Valid for 1 minute)`;
     const subject = 'OTP Login Authentication';
-    newUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // OTP hết hạn sau 5 phút
 
-    const updatedUser = await this.userService.updateUser(user.id, newUser);
-    // console.log('Updated user:', updatedUser);
+    const user = await this.userService.create({
+      ...createUser,
+      password: hashedPassword,
+      otpCode: otp,
+      otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP hết hạn sau 5 phút
+    });
 
     const createNotificationDto: CreateNotificationInput = {
       userId: user.id,
@@ -58,26 +46,151 @@ export class AuthService {
       type: 'email',
       isRead: 'unread',
     };
-
     const notification = this.notificationService.create(createNotificationDto);
-    // await this.emailService.sendNotification(user.email, subject, message);
-    return { token: otp };
+    return { id: user.id, token: otp };
   }
 
-  async verifyLogin(otp: string): Promise<AuthPayload> {
+  async verifySignUp(otp: string): Promise<AuthPayloadContainedId> {
+    const user = await this.userService.findOneByOtp(otp);
+    // console.log('User found:', user);
+
+    if (!user || new Date() > user.otpExpiresAt) {
+      throw new UnauthorizedException('OTP code is invalid or expired');
+    }
+
+    user.status = 'active'; // Đặt trạng thái người dùng thành 'active'
+    const result = await this.userService.updateUser(user.id, user);
+    // console.log('Updated user:', result);
+    return {
+      id: result.id,
+      token: this.jwtService.sign({ id: user.id, role: user.role.id }),
+    };
+  }
+
+  // async login(loginDto: CreateAuthInput): Promise<AuthPayload> {
+  //   const { username, password } = loginDto;
+  //   const user = await this.userService.findOneByUsername(username);
+
+  //   if (!user || !(await bcrypt.compare(password, user.password))) {
+  //     throw new UnauthorizedException('Invalid credentials');
+  //   }
+
+  //   // Tạo mã OTP và lưu vào database
+  //   const otp = this.generateOTP();
+  //   const newUser: UpdateUserInput = {
+  //     ...user,
+  //     otpCode: otp,
+  //     roleId: user.role.id,
+  //   };
+  //   let message: string = `Your OTP code is: ${otp} (Valid for 1 minute)`;
+  //   const subject = 'OTP Login Authentication';
+  //   newUser.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // OTP hết hạn sau 5 phút
+
+  //   const updatedUser = await this.userService.updateUser(user.id, newUser);
+  //   // console.log('Updated user:', updatedUser);
+
+  //   const createNotificationDto: CreateNotificationInput = {
+  //     userId: user.id,
+  //     title: subject,
+  //     content: message,
+  //     type: 'email',
+  //     isRead: 'unread',
+  //   };
+
+  //   const notification = this.notificationService.create(createNotificationDto);
+  //   // await this.emailService.sendNotification(user.email, subject, message);
+  //   return { token: otp };
+  // }
+
+  async login(loginDto: CreateAuthInput): Promise<AuthPayloadContainedId> {
+    const { username, password } = loginDto;
+    const user = await this.userService.findOneByUsername(username);
+
+    // console.log('User found:', user);
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return {
+      id: user.id,
+      token: this.jwtService.sign({ id: user.id, role: user.role.id }),
+    };
+  }
+
+  async verifyLogin(otp: string): Promise<AuthPayloadContainedId> {
     const user = await this.userService.findOneByOtp(otp);
 
     if (!user || new Date() > user.otpExpiresAt) {
       throw new UnauthorizedException('OTP code is invalid or expired');
     }
 
-    // Xóa OTP sau khi xác thực thành công
-    user.otpCode = '';
-    user.otpExpiresAt = new Date();
+    user.status = 'active'; // Đặt trạng thái người dùng thành 'active'
     await this.userService.updateUser(user.id, user);
 
     return {
+      id: user.id,
       token: this.jwtService.sign({ id: user.id, role: user.role.id }),
     };
+  }
+
+  // Phương thức này được dùng để đổi password trước khi đăng nhập
+  async requestResetPassword(email: string): Promise<AuthPayloadContainedId> {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Email not found');
+    }
+
+    const otp = this.generateOTP();
+    let message: string = `Your OTP code is: ${otp} (Valid for 5 minute)`;
+    const subject = 'OTP Login Authentication';
+
+    const newUser: UpdateUserInput = {
+      ...user,
+      otpCode: otp,
+      otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000), // OTP hết hạn sau 5 phút
+    };
+
+    const updatedUser = await this.userService.updateUser(user.id, newUser);
+
+    const createNotificationDto: CreateNotificationInput = {
+      userId: user.id,
+      title: subject,
+      content: message,
+      type: 'email',
+      isRead: 'unread',
+    };
+    const notification = this.notificationService.create(createNotificationDto);
+    return {
+      id: updatedUser.id,
+      token: otp,
+    };
+  }
+
+  async verifyChangePassword(
+    otp: string,
+    newPassword: string,
+  ): Promise<AuthPayloadContainedId> {
+    const user = await this.userService.findOneByOtp(otp);
+
+    if (!user || new Date() > user.otpExpiresAt) {
+      throw new UnauthorizedException('OTP code is invalid or expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updateUser: UpdateUserInput = {
+      id: user.id,
+      password: hashedPassword,
+    };
+    const result = await this.userService.updateUser(user.id, updateUser);
+    const token = await this.login({
+      username: user.username,
+      password: newPassword,
+    })
+      .then((res) => res.token)
+      .catch((err) => {
+        throw new UnauthorizedException('Invalid credentials');
+      });
+    return { id: user.id, token };
   }
 }

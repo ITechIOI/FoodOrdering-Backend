@@ -19,7 +19,7 @@ import {
 } from '@nestjs/microservices';
 import { createPaginatedType } from 'src/utils/paginated';
 
-const PaginatedUser = createPaginatedType(
+const PaginatedNotification = createPaginatedType(
   Notification,
   'PaginatedNotification',
 );
@@ -29,11 +29,11 @@ export class NotificationResolver {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Mutation(() => Notification)
-  async createNotification(
-    @Args('createNotificationInput')
-    createNotificationInput: CreateNotificationInput,
-  ) {
-    return await this.notificationService.create(createNotificationInput);
+  async sendNotification(
+    @Args('createNotificationDto')
+    createNotificationDto: CreateNotificationInput,
+  ): Promise<Notification> {
+    return this.notificationService.create(createNotificationDto);
   }
 
   @EventPattern('otp_authentication')
@@ -44,13 +44,13 @@ export class NotificationResolver {
     console.log('Message:', message);
   }
 
-  @Query(() => String)
-  async sendNotification() {
-    return await this.notificationService.sendNotification();
-  }
+  // @Query(() => String)
+  // async sendNotification() {
+  //   return await this.notificationService.sendNotification();
+  // }
 
-  @Query(() => PaginatedUser)
-  async findByUserId(
+  @Query(() => PaginatedNotification)
+  async findNotificationByUserId(
     @Args('userId', { type: () => Int }) userId: number,
     @Args('page', { type: () => Int, nullable: true }) page: number,
     @Args('limit', { type: () => Int, nullable: true }) limit: number,

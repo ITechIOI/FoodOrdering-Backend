@@ -7,7 +7,7 @@ type Roles {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String!
   users: [Users!]!
 }
@@ -22,7 +22,7 @@ type RevenueReport {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   month: Int
   year: Int
   totalOrders: Int
@@ -37,7 +37,7 @@ type OrderDetail {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   quantity: Int
   note: String
   menu: Menu
@@ -49,7 +49,7 @@ type Menu {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   price: Int
@@ -65,10 +65,20 @@ type Category {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String!
   restaurant: Restaurant
   menu: [Menu!]
+}
+
+type Favorite {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: String
+  restaurant: Restaurant
+  user: Users
 }
 
 type Restaurant {
@@ -76,10 +86,11 @@ type Restaurant {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   phone: String
+  avatar: String
   openTime: String
   closeTime: String
   rating: Int
@@ -89,6 +100,7 @@ type Restaurant {
   categories: [Category!]
   order: [Order!]
   owner: Users
+  favorite: [Favorite!]
 }
 
 type Address {
@@ -96,7 +108,7 @@ type Address {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   label: String
   province: String
   district: String
@@ -115,7 +127,7 @@ type Discount {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   code: String
   description: String
   percentage: Float
@@ -132,7 +144,7 @@ type Payment {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   transactionId: String
   paymentMethod: String
   status: String
@@ -144,7 +156,7 @@ type Complaint {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   content: String
   imageUrl: String
   response: String
@@ -158,7 +170,7 @@ type Review {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   rating: Int
   content: String
   imageUrl: String
@@ -172,7 +184,7 @@ type Order {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   totalPrice: Int
   shippingFee: Int
   status: String
@@ -190,7 +202,7 @@ type Notification {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   title: String
   content: String
   type: String
@@ -198,19 +210,34 @@ type Notification {
   receiver: Users
 }
 
+type Message {
+  id: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  isActive: String
+  content: String!
+  isChecked: Boolean
+  receiver: Users
+  sender: Users
+  firebaseKey: String!
+}
+
 type Users {
   id: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   username: String
   password: String
   email: String
   gender: String
   phone: String
-  type: Int
+  status: String
+  fcmToken: String
+  expoMessageToken: String
   role: Roles!
   avatar: String
   otpCode: String
@@ -221,6 +248,9 @@ type Users {
   notification: [Notification!]
   restaurants: [Restaurant!]
   address: Address
+  favorite: Favorite
+  sender_messages: [Message!]
+  receiver_messages: [Message!]
 }
 
 type PaginatedUser {
@@ -228,7 +258,8 @@ type PaginatedUser {
   data: [Users!]!
 }
 
-type AuthPayload {
+type AuthPayloadContainedId {
+  id: Int!
   token: String!
 }
 
@@ -273,10 +304,11 @@ type NearestRestaurant {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   phone: String
+  avatar: String
   openTime: String
   closeTime: String
   rating: Int
@@ -286,12 +318,47 @@ type NearestRestaurant {
   categories: [Category!]
   order: [Order!]
   owner: Users
+  favorite: [Favorite!]
   distance: Float!
+  averageRating: Float
+}
+
+type TopRatedRestaurant {
+  restaurant: Restaurant!
+  averageRating: Float!
+  distance: Float!
+}
+
+type BestSellingRestaurant {
+  restaurant: Restaurant!
+  totalOrders: Float!
+  distance: Float!
+  averageRating: Float!
 }
 
 type PaginatedRestaurantResponse {
   total: Int!
   data: [Restaurant!]!
+}
+
+type PaginatedResponseNearestRestaurant {
+  total: Int!
+  data: [NearestRestaurant!]!
+}
+
+type PaginatedResponseTopRatedRestaurant {
+  total: Int!
+  data: [TopRatedRestaurant!]!
+}
+
+type PaginatedResponseFindNearestRestaurants {
+  total: Int!
+  data: [NearestRestaurant!]!
+}
+
+type PaginatedResponseBestSellingRestaurant {
+  total: Int!
+  data: [BestSellingRestaurant!]!
 }
 
 type PaginatedAddress {
@@ -304,7 +371,7 @@ type NearestAdress {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   label: String
   province: String
   district: String
@@ -329,7 +396,7 @@ type NearbyMenuItem {
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  isActive: Boolean!
+  isActive: String
   name: String
   description: String
   price: Int
@@ -343,9 +410,19 @@ type NearbyMenuItem {
   categoryName: String!
 }
 
+type TopOrderedMenu {
+  menu: Menu!
+  totalOrders: Int!
+}
+
 type PaginatedMenuResponse {
   total: Int!
   data: [Menu!]!
+}
+
+type RevenueByYear {
+  month: Int!
+  totalRevenue: Int!
 }
 
 type PaginatedOrder {
@@ -373,14 +450,18 @@ type PaginatedComplaintResponse {
   data: [Complaint!]!
 }
 
+type PaginatedFavoriteResponse {
+  total: Int!
+  data: [Favorite!]!
+}
+
 type Query {
   sayHello: String!
   findAllUsers(page: Int, limit: Int): PaginatedUser!
   findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!
-  sendNotification: String!
-  findByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
+  findNotificationByUserId(userId: Int!, page: Int, limit: Int): PaginatedNotification!
   complaints(page: Int, limit: Int): PaginatedComplaintResponse!
   complaint(id: Int!): Complaint!
   review(id: Int!): Review!
@@ -388,6 +469,9 @@ type Query {
   findOrderById(id: Int!): Order!
   findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
   findOrdersByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedOrder!
+  getTotalOrderByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
+  getTotalRevenueByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
+  getTotalRevenueByRestaurantIdByYear(restaurantId: Int!, year: Int!): [RevenueByYear!]!
   findAllDiscounts(page: Int, limit: Int): PaginatedDiscount!
   findDiscountById(id: Int!): Discount!
   findDiscountByCode(code: String!): Discount!
@@ -395,8 +479,16 @@ type Query {
   findAddressById(id: Int!): Address!
   nearestRestaurants(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearestAdress!]!
   restaurants(page: Int, limit: Int): PaginatedRestaurantResponse!
-  restaurant(id: Int!): Restaurant!
-  searchNearestRestaurants(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 10): [NearestRestaurant!]!
+  findRestaurantById(id: Int!): Restaurant!
+  searchNearestRestaurants(latitude: Float!, longitude: Float!, page: Int! = 10, limit: Int! = 10): PaginatedResponseFindNearestRestaurants!
+  searchNearestRestaurantsByName(latitude: Float!, longitude: Float!, keyword: String!, page: Int! = 1, limit: Int! = 10): PaginatedResponseFindNearestRestaurants!
+  findRestaurantsByOwnerId(ownerId: Int!): [Restaurant!]!
+  findRestaurantsByCategory(categoryName: String!, latitude: Float!, longitude: Float!, page: Int, limit: Int): PaginatedResponseFindNearestRestaurants!
+  findRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, page: Int, limit: Int): PaginatedResponseNearestRestaurant!
+  findTopRatedRestaurants(latitude: Float!, longitude: Float!, page: Int, limit: Int): PaginatedResponseTopRatedRestaurant!
+  findTopRatedRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, page: Int, limit: Int): PaginatedResponseTopRatedRestaurant!
+  findMostOrderedRestaurants(latitude: Float!, longitude: Float!, page: Int, limit: Int): PaginatedResponseBestSellingRestaurant!
+  findMostOrderedRestaurantsByName(latitude: Float!, longitude: Float!, name: String!, page: Int, limit: Int): PaginatedResponseBestSellingRestaurant!
   searchPlace(input: String!): GoongAutoCompleteResult!
   reverseGeocode(lat: Float!, lng: Float!): [GoongGeocodeResult!]!
   direction(from: String!, to: String!): GoongDirectionResult!
@@ -408,14 +500,19 @@ type Query {
   findAllNotPaginate: [Menu!]!
   menu(id: Int!): Menu!
   findMenusByCategoryId(categoryId: Int!): [Menu!]!
-  searchNearbyMenuItems(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  searchNearestItemByKeyword(latitude: Float!, longitude: Float!, keyword: String!, limit: Int! = 20): [NearbyMenuItem!]!
+  searchNearestMenuItems(latitude: Float!, longitude: Float!, limit: Int! = 20): [NearbyMenuItem!]!
   findMenusByImageUrl(file: Upload!, limit: Int!): [Menu!]!
+  findTop10MenuByRestaurantId(restaurantId: Int!, year: Int!, month: Int): [TopOrderedMenu!]!
   findAllOrderDetails(page: Int, limit: Int): PaginatedOrderDetails!
   findOneDetailById(id: Int!): OrderDetail!
   findOrderDetailByOrderId(orderId: Int!): [OrderDetail!]!
   payment(id: Int!): Payment!
   revenueReports(page: Int, limit: Int): PaginatedRevenueReportResponse!
   revenueReport(id: Int!): RevenueReport!
+  findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
+  findFavoriteById(id: Int!): Favorite!
+  findFavoritesByUserId(userId: Int!): [Favorite!]!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -427,10 +524,13 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
-  register(createUser: CreateUserInput!): Users!
-  login(loginDto: CreateAuthInput!): AuthPayload!
-  verifyLogin(token: String!): AuthPayload!
-  createNotification(createNotificationInput: CreateNotificationInput!): Notification!
+  uploadToCloudinary(file: Upload!): String!
+  register(createUser: CreateUserInput!): AuthPayloadContainedId!
+  verifySignup(token: String!): AuthPayloadContainedId!
+  login(loginDto: CreateAuthInput!): AuthPayloadContainedId!
+  requestResetPassword(email: String!): AuthPayloadContainedId!
+  verifyChangePassword(token: String!, password: String!): AuthPayloadContainedId!
+  sendNotification(createNotificationDto: CreateNotificationInput!): Notification!
   createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
   updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!
   removeComplaint(id: Int!): Complaint!
@@ -465,6 +565,12 @@ type Mutation {
   createRevenueReport(createRevenueReportInput: CreateRevenueReportInput!): RevenueReport!
   updateRevenueReport(updateRevenueReportInput: UpdateRevenueReportInput!): RevenueReport!
   removeRevenueReport(id: Int!): RevenueReport!
+  createFavorite(createFavoriteInput: CreateFavoriteInput!): Favorite!
+  updateFavorite(updateFavoriteInput: UpdateFavoriteInput!): Favorite!
+  removeFavorite(id: Int!): Favorite!
+  sendMessageNotification(createMessageInput: CreateMessageInput!): Message!
+  updateMessage(updateMessageInput: UpdateMessageInput!): Message!
+  removeMessage(id: Int!): String!
 }
 
 input CreateUserInput {
@@ -474,12 +580,15 @@ input CreateUserInput {
   email: String
   gender: String
   addressId: Int
+  fcmToken: String
+  expoMessageToken: String
   phone: String
   type: Int
   roleId: Int!
   avatar: String
   otpCode: String
   otpExpiresAt: DateTime
+  status: String = "active"
 }
 
 input UpdateUserInput {
@@ -489,12 +598,15 @@ input UpdateUserInput {
   email: String
   gender: String
   addressId: Int
+  fcmToken: String
+  expoMessageToken: String
   phone: String
   type: Int
   roleId: Int
   avatar: String
   otpCode: String
   otpExpiresAt: DateTime
+  status: String = "active"
   id: Int!
 }
 
@@ -511,7 +623,7 @@ input CreateNotificationInput {
   title: String!
   content: String!
   type: String!
-  isRead: String!
+  isRead: String! = "unread"
   userId: Int!
 }
 
@@ -620,6 +732,7 @@ input UpdateAddressInput {
 
 input CreateRestaurantInput {
   name: String!
+  avatar: String
   description: String
   phone: String!
   openTime: String!
@@ -631,6 +744,7 @@ input CreateRestaurantInput {
 
 input UpdateRestaurantInput {
   name: String
+  avatar: String
   description: String
   phone: String
   openTime: String
@@ -647,6 +761,7 @@ input CreateCategoryInput {
 
   """ID nhà hàng"""
   restaurantId: Int
+  isActive: String
 }
 
 input UpdateCategoryInput {
@@ -655,6 +770,7 @@ input UpdateCategoryInput {
 
   """ID nhà hàng"""
   restaurantId: Int
+  isActive: String
 
   """ID danh mục cần cập nhật"""
   id: Int!
@@ -755,5 +871,31 @@ input UpdateRevenueReportInput {
   cancalledOrders: Int
   averageRating: Int
   restaurantId: Int
+  id: Int!
+}
+
+input CreateFavoriteInput {
+  restaurantId: Int!
+  userId: Int!
+}
+
+input UpdateFavoriteInput {
+  restaurantId: Int
+  userId: Int
+  id: Int!
+}
+
+input CreateMessageInput {
+  content: String!
+  isChecked: Boolean = false
+  receiverId: Int!
+  senderId: Int!
+}
+
+input UpdateMessageInput {
+  content: String
+  isChecked: Boolean = false
+  receiverId: Int
+  senderId: Int
   id: Int!
 }

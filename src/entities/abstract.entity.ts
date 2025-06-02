@@ -30,7 +30,7 @@ export class AbstractEntity<T> {
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
 
-  @Field(() => Boolean)
-  @Column({ type: 'boolean', default: true })
-  isActive: boolean;
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, default: 'pending' })
+  isActive: string;
 }

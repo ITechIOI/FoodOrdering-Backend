@@ -1,8 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 import { GraphQLExceptionFilter } from './common/exception-filters/http.exception.filter';
-import { CustomLoggerService } from './common/loggers/custom-logger.service';
 import { WinstonModule } from 'nest-winston';
 import { winstonLogger } from './common/loggers/winston-logger';
 import { graphqlUploadExpress } from 'graphql-upload-minimal';
@@ -33,6 +31,8 @@ async function bootstrap() {
   const statusQueue =
     configService.get<string>('RABBITMQ_QUEUE_ORDER_STATUS') || '';
   const redisQueue = configService.get<string>('REDIS_QUEUE') || '';
+
+  const pushQueue = configService.get<string>('RABBITMQ_QUEUE_PUSH') || '';
 
   const otpAuthenticationApp =
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -68,6 +68,18 @@ async function bootstrap() {
       },
     });
 
+  const pushNotification =
+    await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitUrl],
+        queue: pushQueue,
+        queueOptions: {
+          durable: true,
+        },
+      },
+    });
+
   const redisApp = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
@@ -86,8 +98,10 @@ async function bootstrap() {
   orderConfirmationApp.listen();
   orderStatusApp.listen();
   redisApp.listen();
+  pushNotification.listen();
 
-  await app.listen(3000);
+  const port = configService.get<number>('APP_PORT') || 3001;
+  await app.listen(port, '0.0.0.0');
 }
 
 bootstrap();

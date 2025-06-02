@@ -6,6 +6,7 @@ import { RevenueReport } from './revenue_report.entity';
 import { Category } from './category.entity';
 import { Order } from './order.entity';
 import { User } from './user.entity';
+import { Favorite } from './favorite.entity';
 
 @Entity({ name: 'restaurants' })
 @ObjectType('Restaurant')
@@ -21,6 +22,10 @@ export class Restaurant extends AbstractEntity<Restaurant> {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   phone: string;
+
+  @Field(() => String, { nullable: true })
+  @Column({ nullable: true, default: '' })
+  avatar: string;
 
   @Field(() => String, { nullable: true })
   @Column({ type: 'time', nullable: true })
@@ -68,4 +73,10 @@ export class Restaurant extends AbstractEntity<Restaurant> {
   @Field(() => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.restaurants)
   owner: User;
+
+  @Field(() => [Favorite], { nullable: true })
+  @OneToMany(() => Favorite, (favorite) => favorite.restaurant, {
+    cascade: true,
+  })
+  favorite: Favorite[];
 }

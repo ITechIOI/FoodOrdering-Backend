@@ -7,6 +7,11 @@ import { NearbyMenuItem } from './dto/output/NearbyMenuItem';
 import { FileUpload, GraphQLUpload, Upload } from 'graphql-upload-minimal';
 
 import { createPaginatedType } from 'src/utils/paginated';
+import { TopOrderedMenu } from './dto/output/TopOrderedMenu';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { Roles } from 'src/common/decorators/role.decorator';
 const PaginatedMenuResponse = createPaginatedType(
   Menu,
   'PaginatedMenuResponse',
@@ -16,6 +21,8 @@ export class MenuResolver {
   constructor(private readonly menuService: MenuService) {}
 
   @Mutation(() => Menu)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('manager') // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async createMenu(
     @Args('createMenuInput') createMenuInput: CreateMenuInput,
   ): Promise<Menu> {
@@ -41,6 +48,8 @@ export class MenuResolver {
   }
 
   @Mutation(() => Menu)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async updateMenu(
     @Args('updateMenuInput') updateMenuInput: UpdateMenuInput,
   ): Promise<Menu> {
@@ -48,6 +57,8 @@ export class MenuResolver {
   }
 
   @Mutation(() => Menu) // Trả về Menu thay vì Boolean
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async removeMenu(@Args('id', { type: () => Int }) id: number): Promise<Menu> {
     return await this.menuService.remove(id);
   }
@@ -61,7 +72,7 @@ export class MenuResolver {
   }
 
   @Query(() => [NearbyMenuItem])
-  async searchNearbyMenuItems(
+  async searchNearestItemByKeyword(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
     @Args('keyword') keyword: string,
@@ -75,11 +86,34 @@ export class MenuResolver {
     );
   }
 
+  @Query(() => [NearbyMenuItem])
+  async searchNearestMenuItems(
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+  ): Promise<NearbyMenuItem[]> {
+    return this.menuService.findNearestMenuItems(latitude, longitude, limit);
+  }
+
   @Query(() => [Menu])
   async findMenusByImageUrl(
     @Args('file', { type: () => GraphQLUpload }) file: FileUpload,
     @Args({ name: 'limit', type: () => Int }) limit: number,
   ): Promise<Menu[]> {
     return this.menuService.findMenuByImage(file, limit);
+  }
+
+  // Tìm kiếm top 10 món ăn được đặt hàng nhiều nhất tại nhà hàng X
+  @Query(() => [TopOrderedMenu])
+  async findTop10MenuByRestaurantId(
+    @Args('restaurantId', { type: () => Int }) restaurantId: number,
+    @Args('year', { type: () => Int }) year: number,
+    @Args('month', { type: () => Int, nullable: true }) month?: number,
+  ): Promise<TopOrderedMenu[]> {
+    return this.menuService.findTop10MenuItemsByRestaurantIdByTime(
+      restaurantId,
+      year,
+      month,
+    );
   }
 }

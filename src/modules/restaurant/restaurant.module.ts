@@ -8,6 +8,9 @@ import { User } from 'src/entities/user.entity';
 import { AddressModule } from '../address/address.module';
 import { UsersModule } from '../users/users.module';
 import { CacheService } from 'src/common/cache/cache.service';
+import { RolesModule } from '../roles/roles.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Restaurant]), AddressModule, UsersModule],

@@ -13,7 +13,7 @@ import { OrderDetail } from './order_detail.entity';
 @Entity({ name: 'orders' })
 @ObjectType('Order')
 export class Order extends AbstractEntity<Order> {
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   @Column({ nullable: true, default: 0 })
   totalPrice: number;
 
@@ -21,11 +21,11 @@ export class Order extends AbstractEntity<Order> {
   @Column({ nullable: true, default: 0 })
   shippingFee: number;
 
-  // Values in ['pending', 'completed', 'cancelled']
+  // Values in ['pending', 'completed', 'cancelled', 'confirmed']
   @Field(() => String, { nullable: true })
   @Column({
     type: 'enum',
-    enum: ['pending', 'completed', 'cancelled'],
+    enum: ['pending', 'completed', 'cancelled', 'confirmed'],
     default: 'pending',
   })
   status: string;

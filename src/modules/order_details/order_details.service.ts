@@ -59,6 +59,7 @@ export class OrderDetailsService {
     const [data, total] = await this.orderDetailRepository
       .createQueryBuilder('orderDetails')
       .leftJoinAndSelect('orderDetails.order', 'order')
+      .leftJoinAndSelect('orderDetails.menu', 'menu')
       .where('order.deletedAt is null')
       .andWhere('orderDetails.deletedAt is null')
       .take(limit)
@@ -90,6 +91,8 @@ export class OrderDetailsService {
   async findOneByOrderId(orderId: number): Promise<OrderDetail[]> {
     const details = await this.orderDetailRepository
       .createQueryBuilder('detail')
+      .leftJoinAndSelect('detail.menu', 'menu')
+      .leftJoinAndSelect('detail.order', 'order')
       .where('detail.orderId = :orderId', { orderId })
       .andWhere('detail.deletedAt is null')
       .getMany();

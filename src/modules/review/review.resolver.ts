@@ -4,6 +4,8 @@ import { Review } from '../../entities/review.entity';
 import { CreateReviewInput } from './dto/create-review.input';
 import { UpdateReviewInput } from './dto/update-review.input';
 import { createPaginatedType } from 'src/utils/paginated';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 const PaginatedReviewResponse = createPaginatedType(
   Review,
@@ -14,6 +16,7 @@ export class ReviewResolver {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Mutation(() => Review)
+  @UseGuards(AuthGuard)
   async createReview(
     @Args('createReviewInput') createReviewInput: CreateReviewInput,
   ): Promise<Review> {
@@ -21,6 +24,7 @@ export class ReviewResolver {
   }
 
   @Query(() => PaginatedReviewResponse, { name: 'review' })
+  @UseGuards(AuthGuard)
   async findAll(
     @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
@@ -34,6 +38,7 @@ export class ReviewResolver {
   }
 
   @Mutation(() => Review)
+  @UseGuards(AuthGuard)
   async updateReview(
     @Args('updateReviewInput') updateReviewInput: UpdateReviewInput,
   ): Promise<Review> {
@@ -44,6 +49,7 @@ export class ReviewResolver {
   }
 
   @Mutation(() => Review)
+  @UseGuards(AuthGuard)
   async removeReview(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Review> {

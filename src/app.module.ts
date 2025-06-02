@@ -31,13 +31,15 @@ import { CacheWorkerModule } from './modules/cache_worker/cache_worker.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheService } from './common/cache/cache.service';
 import { ComplaintModule } from './modules/complaint/complaint.module';
+import { FavoriteModule } from './modules/favorite/favorite.module';
+import { MessageModule } from './modules/message/message.module';
 @Module({
   imports: [
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
         store: redisStore,
-        host: 'localhost',
+        host: 'redis-service',
         port: 6379,
         ttl: 6000,
       }),
@@ -108,6 +110,23 @@ import { ComplaintModule } from './modules/complaint/complaint.module';
           }),
           inject: [ConfigService],
         },
+
+        {
+          name: 'PUSH_NOTIFICATION_SERVICE',
+          useFactory: (configService: ConfigService) => ({
+            transport: Transport.RMQ,
+            options: {
+              urls: [
+                configService.get<string>('RABBITMQ_URL') ?? 'amqp://localhost',
+              ],
+              queue: configService.get<string>('RABBITMQ_QUEUE_PUSH') ?? '',
+              queueOptions: {
+                durable: true,
+              },
+            },
+          }),
+          inject: [ConfigService],
+        },
       ],
     }),
 
@@ -130,6 +149,8 @@ import { ComplaintModule } from './modules/complaint/complaint.module';
     RevenueReportModule,
     ReviewModule,
     CacheWorkerModule,
+    FavoriteModule,
+    MessageModule,
   ],
   controllers: [],
   providers: [AppResolver, EmailService, CacheService],
