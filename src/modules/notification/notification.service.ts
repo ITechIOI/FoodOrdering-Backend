@@ -47,7 +47,6 @@ export class NotificationService {
     const { userId, ...data } = createNotificationDto;
 
     const user = await this.userService.findOneById(userId);
-    console.log('User found:', user);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
@@ -69,6 +68,14 @@ export class NotificationService {
         user.expoMessageToken,
         createNotificationDto.title,
         createNotificationDto.content,
+      );
+      console.log(
+        'Notification strategy:',
+        user.expoMessageToken +
+          '   ' +
+          createNotificationDto.title +
+          '   ' +
+          createNotificationDto.content,
       );
     } else {
       throw new NotFoundException(`Notification type ${data.type} not found`);

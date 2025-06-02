@@ -17,13 +17,11 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
     TypeOrmModule.forFeature([Order]),
     DiscountModule,
     UsersModule,
-    RolesModule,
-    JwtModule,
     AddressModule,
     RestaurantModule,
     NotificationModule, // Assuming NotificationModule is defined elsewhere
   ],
-  providers: [OrderResolver, OrderService, AuthGuard],
+  providers: [OrderResolver, OrderService],
   exports: [OrderService],
 })
 export class OrderModule {}

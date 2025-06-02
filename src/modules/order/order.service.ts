@@ -75,7 +75,7 @@ export class OrderService {
 
     await this.notificationService.create({
       userId: restaurant.owner.id,
-      title: `🛎 Đơn hàng mới từ ${restaurant.name}`,
+      title: `🛎 Đơn hàng mới từ ${order.user.name}`,
       content: `Bạn vừa nhận một đơn hàng mới trị giá ${newOrder.totalPrice}₫. Hãy kiểm tra ngay!`,
       type: 'push',
       isRead: 'unread', // optional nếu đã có default
@@ -164,6 +164,8 @@ export class OrderService {
   async updateOrderStatus(id: number, status: string): Promise<Order> {
     const order = await this.orderRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.restaurant', 'restaurant')
       .where('order.id = :id', { id })
       .andWhere('order.deletedAt is null')
       .getOne();
@@ -175,18 +177,19 @@ export class OrderService {
     order.status = status;
     const updatedOrder = await this.orderRepository.save(order);
     const restaurant = await this.restaurantService.findOne(
-      updatedOrder.restaurant.id,
+      order.restaurant.id,
     );
     if (!restaurant) {
       throw new NotFoundException(
-        `Restaurant with ID ${updatedOrder.restaurant.id} not found`,
+        `Restaurant with ID ${order.restaurant.id} not found`,
       );
     }
+
     if (status === 'completed' || status === 'cancelled') {
       const notificationContent =
         status === 'completed'
-          ? `Đơn hàng #${updatedOrder.id} đã được hoàn thành. Tổng giá trị: ${updatedOrder.totalPrice}₫. Cảm ơn bạn đã sử dụng dịch vụ!`
-          : `Đơn hàng #${updatedOrder.id} đã bị hủy. Chúng tôi xin lỗi vì sự bất tiện này.`;
+          ? `Đơn hàng #${order.id} đã được hoàn thành. Tổng giá trị: ${order.totalPrice}₫. Cảm ơn bạn đã sử dụng dịch vụ!`
+          : `Đơn hàng #${order.id} đã bị hủy. Chúng tôi xin lỗi vì sự bất tiện này.`;
       await this.notificationService.create({
         userId: restaurant.owner.id,
         title: `🛎 Cập nhật đơn hàng #${updatedOrder.id}`,
@@ -198,14 +201,13 @@ export class OrderService {
 
     if (status === 'confirmed') {
       await this.notificationService.create({
-        userId: updatedOrder.user.id,
-        title: `🛎 Đơn hàng #${updatedOrder.id} đã được xác nhận`,
-        content: `Đơn hàng của bạn tại ${restaurant.name} đã được xác nhận. Tổng giá trị: ${updatedOrder.totalPrice}₫.`,
+        userId: order.user.id,
+        title: `🛎 Đơn hàng #${order.id} đã được xác nhận`,
+        content: `Đơn hàng của bạn tại ${restaurant.name} đã được xác nhận. Tổng giá trị: ${order.totalPrice}₫.`,
         type: 'push',
         isRead: 'unread',
       });
     }
-
     return updatedOrder;
   }
 

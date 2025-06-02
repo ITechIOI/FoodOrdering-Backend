@@ -5,10 +5,6 @@ import { CreateOrderInput } from './dto/create-order.input';
 import { UpdateOrderInput } from './dto/update-order.input';
 import { createPaginatedType } from 'src/utils/paginated';
 import { RevenueByYear } from './dto/output/RevenueByYear';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
-import { Roles } from 'src/common/decorators/role.decorator';
 
 const PaginatedOrder = createPaginatedType(Order, 'PaginatedOrder');
 
@@ -18,16 +14,13 @@ export class OrderResolver {
 
   // KHởi tạo đơn hàng thì totalPrice = shippingFree
   @Mutation(() => Order)
-  @UseGuards(AuthGuard)
   async createOrder(
     @Args('createOrderInput') createOrderInput: CreateOrderInput,
   ) {
     return await this.orderService.create(createOrderInput);
   }
 
-  @Query(() => PaginatedOrder)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Query(() => PaginatedOrder) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async findAllOrders(
     @Args('page', { type: () => Int, nullable: true }) page?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
@@ -36,13 +29,11 @@ export class OrderResolver {
   }
 
   @Query(() => Order)
-  @UseGuards(AuthGuard)
   async findOrderById(@Args('id', { type: () => Int }) id: number) {
     return await this.orderService.findOne(id);
   }
 
   @Query(() => PaginatedOrder)
-  @UseGuards(AuthGuard)
   async findOrderByUserId(
     @Args('userId', { type: () => Int }) userId: number,
     @Args('page', { type: () => Int, nullable: true }) page: number,
@@ -51,9 +42,7 @@ export class OrderResolver {
     return await this.orderService.findByUserId(userId, page, limit);
   }
 
-  @Query(() => PaginatedOrder)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Query(() => PaginatedOrder) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async findOrdersByRestaurantId(
     @Args('restaurantId', { type: () => Int }) restaurantId: number,
     @Args('page', { type: () => Int, nullable: true }) page: number,
@@ -68,9 +57,7 @@ export class OrderResolver {
 
   // Không cho phép update userId, restaurantId, discountId, và addressId
   // Nếu muốn update địa chỉ của đơn hàng thì chỉ được phép update nội dung của địa chỉ trong đối tượng address
-  @Mutation(() => Order)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Mutation(() => Order) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async updateOrder(
     @Args('updateOrderInput') updateOrderInput: UpdateOrderInput,
   ) {
@@ -80,17 +67,22 @@ export class OrderResolver {
     );
   }
 
+  // Cập nhật trạng thái của đơn hàng
   @Mutation(() => Order)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  async updateOrderStatus(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('status', { type: () => String }) status: string,
+  ) {
+    return await this.orderService.updateOrderStatus(id, status);
+  }
+
+  @Mutation(() => Order) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async removeOrder(@Args('id', { type: () => Int }) id: number) {
     return await this.orderService.remove(id);
   }
 
   // Thống kê tổng đơn hàng của nhà hàng theo tháng + năm hoặc năm
-  @Query(() => Number)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Query(() => Number) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async getTotalOrderByRestaurantId(
     @Args('restaurantId', { type: () => Int }) restaurantId: number,
     @Args('year', { type: () => Int }) year: number,
@@ -104,9 +96,7 @@ export class OrderResolver {
   }
 
   // Thống kê tổng doanh thu của nhà hàng theo tháng + năm hoặc năm
-  @Query(() => Number)
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Query(() => Number) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async getTotalRevenueByRestaurantId(
     @Args('restaurantId', { type: () => Int }) restaurantId: number,
     @Args('year', { type: () => Int }) year: number,
@@ -120,9 +110,7 @@ export class OrderResolver {
   }
 
   // Thống kê tổng doanh thu của nhà hàng theo từng tháng trong năm (Tham số đầu vào là mã nhà hàng và năm)
-  @Query(() => [RevenueByYear])
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles('manager', 'admin') // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  @Query(() => [RevenueByYear]) // Chỉ cho phép người dùng có vai trò manager hoặc admin
   async getTotalRevenueByRestaurantIdByYear(
     @Args('restaurantId', { type: () => Int }) restaurantId: number,
     @Args('year', { type: () => Int }) year: number,

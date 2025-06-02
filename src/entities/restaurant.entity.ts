@@ -65,9 +65,7 @@ export class Restaurant extends AbstractEntity<Restaurant> {
   categories: Category[];
 
   @Field(() => [Order], { nullable: true })
-  @OneToMany(() => Order, (order) => order.restaurant, {
-    cascade: true,
-  })
+  @OneToMany(() => Order, (order) => order.restaurant)
   order: Order[];
 
   @Field(() => User, { nullable: true })

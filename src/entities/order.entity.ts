@@ -35,7 +35,9 @@ export class Order extends AbstractEntity<Order> {
   user: User;
 
   @Field(() => Address, { nullable: true })
-  @ManyToOne(() => Address, (address) => address.order)
+  @ManyToOne(() => Address, (address) => address.order, {
+    cascade: true,
+  })
   address: Address;
 
   @Field(() => Restaurant, { nullable: true })

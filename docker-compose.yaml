@@ -61,9 +61,9 @@ services:
       - FIREBASE_MESSAGE_PROJECT_ID="food-ordering-app-66aa8"
       - FIREBASE_MESSAGE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@food-ordering-app-66aa8.iam.gserviceaccount.com"
       - FIREBASE_MESSAGE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCcKOuxd7u/WMrD\nANZeOJXpKaDYpQTjhenNCLl2uuavLZR1MYYvR8WxuKW92mSIM6s6zJysNyieQasl\nboUSCcpR6su+oN4pxrC4Y2wGenNFMgSmrduF+0n8fHWY2YvA5ujPlwxk9YJCx3vC\nIZ5vkzROEWKVU2XHQXf6PJiGxUiPzehbF0Y9ZgdjAFz/kzLEf+mGrF1JrU21Ft5f\nIG6cPVKWgCzFs4ezHWTqu87COe1grSnbyxd71reBwcpaSH8+CuC2bGw3j6QZwVHM\n2uOXd8ey8iBdYrFsHsznE+9tYb0gv955NY14fOIt08Ri4WneU4QJKNXWUTRGi3E+\nzu0020mfAgMBAAECggEANd/gQJ/ARCmL+m7FhkgbYA+ekF+OKji/Cp+h7JZak8Ez\n4KKvWox2ZfQAKlm4KU06G9UPkFKPTtn1A7r3adu60zwgAqpZOyxzN4oFcM66CftR\no3eDrtudEOCXaZ5UGr8PPt8rxYD16bgMuFME6BVvDCfvTPkyueWaUNiq/oP9nq6u\nnRxDzW+XpsNqxqgn7zy6D8OZnnms6aZ++sJ+ZdvydgN1h8BhXRlXL5tUREpFQln9\nObWwh0FexeF3mmyHRh9LX3MJlPgsk6HLB0pRRsAO6LB43y9w26KeCHIDWEecxnS8\nBZoQPkBZ7v1CrxZGN3iaTKxw5uwUrsRemOwDzj7xcQKBgQDa+AP3vL8B5IjS4Emt\nbXzGtV/zBIRom9y57ZoPZBw2yhV/Q/DyvQzbTPc93BY7riP0P0bceXaq3lU65ZFx\nRIV5U4Jr9Ta7ARAX/kDy7RQM4CNglVrS4uyUfZmMQTlnOvgUN6vNZjci5tJQE6fS\nMvOu8Oc8BX6yyiwrrB0Az2oD+wKBgQC2kasnFM1HaL0KsuX9dH0EvVoq4uln24bP\niKDr1vqhoUd4Xkycu/j703+Lw0456/jJDi7styCkuspzpjcXi8zmPAFtP62P5o1q\ntSfquHWlTWnwcvNUdUZPYm9cmifHtbYCKY5k7BvxVHdBq/HciQkVJH+s2DdNcDj8\njSmpQFd7rQKBgQDTp7COIs+ukK0AyPPuw0o8+MzKJq+mPiJZRiYIgogTHbsxzQZ2\nW+61e+vwy3BiN61hRljEfFQMTeSsjYLMraMm52XF3L0OfbSEvKsjJa6f03fev/+O\noPJ1hgKJ4/IMqp9pS3axj//zqJHZ/WXWdJG/o/Sfu+AAChQwEqnmQpcDSQKBgA41\nD8ieycrAz9VBTryGkCQKSDYGKnu2jasgysUPmblyP4mSbQvVZO7T6p0JudCwGFAt\nFmG9boDjOFX/nVHrwyo3iTTjO7JzEpY3Or/9UspmV9QqXd04sxwCYQAnzuivr1ZD\nvZ0E8re5Bv7JTq0GzPokOPtOaB9SmFyu74sIQsaRAoGBAKAMm5wvTjpxA27N/JxH\nMmIzCKWgcJGatBlqPftz8S+m39nsgVgKiiLQsrca9w02UZTW47FGhYIKO9v/hA6L\n01aoQhFLv9b397kfT91DXJCkTtszcAzAlqla9w9djsIMIsHUgDd/lGSh23tyZ7yv\nTeWIc9aCDUjL/v7w8wahm2Z7\n-----END PRIVATE KEY-----\n"
-      - FIREBASE_DATABASE_URL="https://food-ordering-app-66aa8-default-rtdb.asia-southeast1.firebasedatabase.app"
+      - FIREBASE_DATABASE_URL=https://food-ordering-app-66aa8-default-rtdb.asia-southeast1.firebasedatabase.app
 
-      - FASTAPI_URL=http://fastapi:8000
+      - FASTAPI_URL=http://52.77.216.171:8000
 
 networks:
   app-network:

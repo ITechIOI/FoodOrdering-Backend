@@ -539,6 +539,7 @@ type Mutation {
   removeReview(id: Int!): Review!
   createOrder(createOrderInput: CreateOrderInput!): Order!
   updateOrder(updateOrderInput: UpdateOrderInput!): Order!
+  updateOrderStatus(id: Int!, status: String!): Order!
   removeOrder(id: Int!): Order!
   createDiscount(createDiscountInput: CreateDiscountInput!): Discount!
   updateDiscount(updateDiscountInput: UpdateDiscountInput!): Discount!
