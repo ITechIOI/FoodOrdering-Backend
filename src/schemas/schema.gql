@@ -512,7 +512,7 @@ type Query {
   revenueReport(id: Int!): RevenueReport!
   findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
   findFavoriteById(id: Int!): Favorite!
-  findFavoritesByUserId(userId: Int!): [Favorite!]!
+  findFavoritesByUserId(userId: Int!, page: Int! = 1, limit: Int! = 10): PaginatedFavoriteResponse!
 }
 
 """The `Upload` scalar type represents a file upload."""

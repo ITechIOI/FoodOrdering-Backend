@@ -124,19 +124,25 @@ export class FavoriteService {
     return await this.favoriteRepository.save(favorite);
   }
 
-  async findFavoritesByUserId(userId: number) {
+  async findFavoritesByUserId(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<PaginatedResponse<Favorite>> {
     const favorites = await this.favoriteRepository
       .createQueryBuilder('favorite')
       .leftJoinAndSelect('favorite.restaurant', 'restaurant')
       .where('favorite.userId = :userId', { userId })
       .andWhere('favorite.deletedAt IS NULL')
       .andWhere('restaurant.deletedAt IS NULL')
-      .getMany();
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
-    if (favorites.length === 0) {
+    const [data, total] = favorites;
+    if (data.length === 0) {
       throw new NotFoundException(`No favorites found for user ID ${userId}`);
     }
-
-    return favorites;
+    return { data, total };
   }
 }

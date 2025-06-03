@@ -5,6 +5,7 @@ import { CreateFavoriteInput } from './dto/create-favorite.input';
 import { UpdateFavoriteInput } from './dto/update-favorite.input';
 
 import { createPaginatedType } from 'src/utils/paginated';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 const PaginatedFavoriteResponse = createPaginatedType(
   Favorite,
   'PaginatedFavoriteResponse',
@@ -49,10 +50,12 @@ export class FavoriteResolver {
     return await this.favoriteService.remove(id);
   }
 
-  @Query(() => [Favorite])
+  @Query(() => PaginatedFavoriteResponse)
   async findFavoritesByUserId(
     @Args('userId', { type: () => Int }) userId: number,
-  ): Promise<Favorite[]> {
-    return this.favoriteService.findFavoritesByUserId(userId);
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
+  ): Promise<PaginatedResponse<Favorite>> {
+    return this.favoriteService.findFavoritesByUserId(userId, page, limit);
   }
 }
