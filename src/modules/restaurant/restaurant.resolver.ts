@@ -80,9 +80,13 @@ export class RestaurantResolver {
   async searchNearestRestaurants(
     @Args('latitude', { type: () => Float }) latitude: number,
     @Args('longitude', { type: () => Float }) longitude: number,
-    @Args('page', { type: () => Int, defaultValue: 10 }) page: number,
+    @Args('page', { type: () => Int, defaultValue: 0 }) page: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
-  ): Promise<PaginatedResponse<Restaurant & { distance: number }>> {
+  ): Promise<
+    PaginatedResponse<
+      Restaurant & { distance: number } & { averageRating: number }
+    >
+  > {
     return this.restaurantService.findNearestRestaurants(
       latitude,
       longitude,

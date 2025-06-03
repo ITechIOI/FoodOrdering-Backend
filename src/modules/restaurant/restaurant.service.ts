@@ -171,8 +171,8 @@ export class RestaurantService {
     userLat: number,
     userLng: number,
     // keyword: string,
-    page: number = 10,
-    limit = 10,
+    page: number = 0,
+    limit: number = 10,
   ): Promise<
     PaginatedResponse<
       Restaurant & { distance: number } & { averageRating: number }
@@ -445,8 +445,8 @@ export class RestaurantService {
     userLat: number,
     userLng: number,
     name: string,
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 10, // ✅ đảm bảo có giá trị mặc định
   ): Promise<PaginatedResponse<TopRatedRestaurant>> {
     const offset = (page - 1) * limit;
 
@@ -467,8 +467,8 @@ export class RestaurantService {
         'distance',
       )
       .addSelect('AVG(review.rating)', 'averageRating')
-      .where('restaurant.name LIKE :name', { name: `%${name}%` })
       .andWhere('restaurant.isActive = :isActive', { isActive: 'accepted' })
+      .andWhere('restaurant.name LIKE :name', { name: `%${name}%` })
       .andWhere(
         'address.latitude IS NOT NULL AND address.longitude IS NOT NULL',
       )
@@ -478,13 +478,9 @@ export class RestaurantService {
       .addOrderBy('distance', 'ASC')
       .setParameters({ userLat, userLng })
       .skip(offset)
-      .take(limit); // ✅ dùng take thay vì limit
+      .take(limit);
 
     const { raw, entities } = await query.getRawAndEntities();
-
-    if (!entities || entities.length === 0) {
-      throw new NotFoundException(`No restaurants found with name ${name}`);
-    }
 
     const result: TopRatedRestaurant[] = entities.map((restaurant, index) => {
       const rawData = raw[index];
@@ -497,12 +493,8 @@ export class RestaurantService {
       };
     });
 
-    return {
-      data: result,
-      total: result.length, // Nếu muốn tổng thực sự: dùng getManyAndCount()
-    };
+    return { data: result, total: result.length }; // (optionally improve with .getManyAndCount)
   }
-
   // Tìm kiếm nhà hàng có TÔNG đơn hàng nhiều nhất
   async findMostOrderedRestaurants(
     userLat: number,
