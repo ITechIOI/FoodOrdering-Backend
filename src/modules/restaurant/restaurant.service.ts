@@ -427,6 +427,10 @@ export class RestaurantService {
 
     const { raw, entities } = await query.getRawAndEntities();
 
+    if (!entities || entities.length === 0) {
+      throw new NotFoundException(`No restaurants found`);
+    }
+
     const result: TopRatedRestaurant[] = entities.map((restaurant, index) => {
       const rawData = raw[index];
       return {
