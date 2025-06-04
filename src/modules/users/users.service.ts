@@ -17,6 +17,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from '@nestjs/cache-manager';
 import { ClientProxy } from '@nestjs/microservices';
 import { CacheService } from 'src/common/cache/cache.service';
+import { Address } from 'src/entities/address.entity';
 
 @Injectable()
 export class UsersService {
@@ -97,6 +98,61 @@ export class UsersService {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async linkOrUpdateUserAddress(
+    userId: number,
+    newAddressId: number | null,
+  ): Promise<User> {
+    console.log(` UserID: ${userId}, newAddressId: ${newAddressId}`);
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found.`);
+    }
+
+    if (newAddressId === null) {
+      try {
+        await this.userRepository.update(userId, { address: null as any });
+      } catch (e) {
+        throw new InternalServerErrorException('Lỗi khi xóa liên kết địa chỉ.');
+      }
+    } else {
+      user.address = { id: newAddressId } as Address;
+
+      try {
+        await this.userRepository.save(user);
+      } catch (dbError) {
+        console.error(
+          'Error saving user after setting new address reference:',
+          dbError,
+        );
+        if (
+          dbError.message &&
+          dbError.message.toLowerCase().includes('foreign key constraint fails')
+        ) {
+          throw new NotFoundException(
+            `Địa chỉ với ID ${newAddressId} không tồn tại hoặc không thể liên kết.`,
+          );
+        }
+        throw new InternalServerErrorException(
+          'Lỗi database khi cập nhật địa chỉ người dùng.',
+        );
+      }
+    }
+
+    const updatedUserWithPopulatedAddress = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['address', 'role'],
+    });
+
+    if (!updatedUserWithPopulatedAddress) {
+      throw new InternalServerErrorException(
+        'Không thể tải lại người dùng sau khi cập nhật liên kết địa chỉ.',
+      );
+    }
+
+    return updatedUserWithPopulatedAddress;
   }
 
   async createAvatar(id: number, file: FileUpload) {
