@@ -52,11 +52,13 @@ export class RestaurantResolver {
     return await this.restaurantService.findAll(page, limit);
   }
 
-  @Query(() => Restaurant)
+  @Query(() => NearestRestaurant)
   async findRestaurantById(
     @Args('id', { type: () => Int }) id: number,
-  ): Promise<Restaurant> {
-    return await this.restaurantService.findOne(id);
+    @Args('latitude', { type: () => Float }) latitude: number,
+    @Args('longitude', { type: () => Float }) longitude: number,
+  ): Promise<NearestRestaurant> {
+    return await this.restaurantService.findOneById(id, latitude, longitude);
   }
 
   @Mutation(() => Restaurant)

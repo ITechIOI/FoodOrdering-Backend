@@ -114,6 +114,50 @@ export class RestaurantService {
     return await this.restaurantRepository.save(restaurant);
   }
 
+  async findOneById(
+    id: number,
+    userLat: number,
+    userLng: number,
+  ): Promise<NearestRestaurant> {
+    const query = this.restaurantRepository
+      .createQueryBuilder('restaurant')
+      .leftJoinAndSelect('restaurant.address', 'address')
+      .leftJoin('restaurant.order', 'order')
+      .leftJoin('order.review', 'review')
+      .select('restaurant')
+      .addSelect('AVG(review.rating)', 'averageRating')
+      .addSelect(
+        `
+      6371 * acos(
+        cos(radians(:userLat)) * cos(radians(address.latitude)) *
+        cos(radians(address.longitude) - radians(:userLng)) +
+        sin(radians(:userLat)) * sin(radians(address.latitude))
+      )
+    `,
+        'distance',
+      )
+      .where('restaurant.deletedAt IS NULL')
+      .andWhere('address.deletedAt IS NULL')
+      .andWhere('restaurant.id = :id', { id })
+      .setParameters({ userLat, userLng });
+
+    const { entities, raw } = await query.getRawAndEntities();
+    const restaurant = entities[0];
+    if (!restaurant) {
+      throw new NotFoundException(`Restaurant with ID ${id} not found`);
+    }
+    const rawData = raw[0];
+    const averageRating = rawData?.averageRating
+      ? parseFloat(rawData.averageRating)
+      : 0;
+    const distance = rawData?.distance ? parseFloat(rawData.distance) : 0;
+    return {
+      ...restaurant,
+      averageRating,
+      distance,
+    };
+  }
+
   async findRestaurantsByName(
     userLat: number,
     userLng: number,
