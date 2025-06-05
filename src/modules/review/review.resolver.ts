@@ -6,6 +6,7 @@ import { UpdateReviewInput } from './dto/update-review.input';
 import { createPaginatedType } from 'src/utils/paginated';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { PaginatedResponse } from 'src/utils/paginatedType';
 
 const PaginatedReviewResponse = createPaginatedType(
   Review,
@@ -23,17 +24,19 @@ export class ReviewResolver {
     return await this.reviewService.create(createReviewInput);
   }
 
-  @Query(() => PaginatedReviewResponse, { name: 'reviews' })
+  @Query(() => PaginatedReviewResponse)
   @UseGuards(AuthGuard)
-  async findAll(
+  async findAllReviews(
     @Args('page', { type: () => Int, nullable: true }) page = 1,
     @Args('limit', { type: () => Int, nullable: true }) limit = 10,
   ) {
     return await this.reviewService.findAll(page, limit);
   }
 
-  @Query(() => Review, { name: 'review' })
-  async findOne(@Args('id', { type: () => Int }) id: number): Promise<Review> {
+  @Query(() => Review)
+  async findOneReviewById(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<Review> {
     return await this.reviewService.findOne(id);
   }
 
@@ -54,5 +57,22 @@ export class ReviewResolver {
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Review> {
     return this.reviewService.remove(id);
+  }
+
+  @Query(() => Review)
+  async findReviewByOrderIdAndUserId(
+    @Args('orderId', { type: () => Int }) orderId: number,
+    @Args('userId', { type: () => Int }) userId: number,
+  ): Promise<Review> {
+    return this.reviewService.findReviewByOrderIdAndUserId(orderId, userId);
+  }
+
+  @Query(() => PaginatedReviewResponse)
+  async findReviewsByOrderId(
+    @Args('orderId', { type: () => Int }) orderId: number,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<PaginatedResponse<Review>> {
+    return this.reviewService.findReviewsByOrderId(orderId, page, limit);
   }
 }

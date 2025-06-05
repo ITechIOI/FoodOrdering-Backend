@@ -71,4 +71,45 @@ export class ReviewService {
     review.deletedAt = new Date();
     return await this.reviewRepository.save(review);
   }
+
+  async findReviewByOrderIdAndUserId(
+    orderId: number,
+    userId: number,
+  ): Promise<Review> {
+    const review = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.order', 'order')
+      .where('review.orderId = :orderId', { orderId })
+      .andWhere('order.userId = :userId', { userId })
+      .andWhere('review.deletedAt IS NULL')
+      .getOne();
+    if (!review) {
+      throw new NotFoundException(
+        `Review not found for order ID ${orderId} and user ID ${userId}`,
+      );
+    }
+    return review;
+  }
+
+  async findReviewsByOrderId(
+    orderId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Review>> {
+    const [data, total] = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.order', 'order')
+      .where('review.orderId = :orderId', { orderId })
+      .andWhere('review.deletedAt IS NULL')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    if (data.length === 0) {
+      throw new NotFoundException(`No reviews found for order ID ${orderId}`);
+    }
+
+    return { data, total };
+
+  }
 }

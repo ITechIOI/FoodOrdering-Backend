@@ -11,8 +11,8 @@ export class CreateReviewInput {
   @Field(() => String, { nullable: true })
   imageUrl?: string;
 
-  @Field(() => String, { nullable: true })
-  isNegative?: string;
+  // @Field(() => String, { nullable: true, defaultValue: 'false' })
+  // isNegative?: string;
 
   @Field(() => Int)
   orderId: number;
