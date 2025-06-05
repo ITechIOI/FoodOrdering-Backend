@@ -90,7 +90,10 @@ export class OrderService {
   ): Promise<{ total: number; data: Order[] }> {
     const [data, total] = await this.orderRepository
       .createQueryBuilder('order')
+      .leftJoinAndSelect('order.payment', 'payment')
       .where('order.deletedAt is null')
+      // chỉ lấy những đơn hàng đã thanh toán thành công
+      .andWhere('payment.status = :status', { status: 'completed' })
       .take(limit)
       .skip((page - 1) * limit)
       .getManyAndCount();
