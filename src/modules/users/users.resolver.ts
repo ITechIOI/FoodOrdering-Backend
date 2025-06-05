@@ -59,6 +59,18 @@ export class UsersResolver {
       updateUserInput,
     );
   }
+  @Mutation(() => User, { name: 'linkUserAddress' })
+  @UseGuards(AuthGuard)
+  async linkAddressToUser(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('addressId', { type: () => Int, nullable: true })
+    addressId: number | null,
+  ): Promise<User> {
+    console.log(
+      `[UsersResolver] linkAddressToUser - Request received for UserID: ${userId}, AddressID: ${addressId}`,
+    );
+    return this.usersService.linkOrUpdateUserAddress(userId, addressId);
+  }
 
   @Mutation(() => User)
   removeUser(@Args('id', { type: () => Int }) id: number) {
