@@ -58,4 +58,15 @@ export class FavoriteResolver {
   ): Promise<PaginatedResponse<Favorite>> {
     return this.favoriteService.findFavoritesByUserId(userId, page, limit);
   }
+
+  @Query(() => Favorite)
+  async findFavoriteByRestaurantId(
+    @Args('restaurantId', { type: () => Int }) restaurantId: number,
+    @Args('userId', { type: () => Int }) userId: number,
+  ): Promise<Favorite | null> {
+    return this.favoriteService.findFavoriteByRestaurantIdAndUserId(
+      restaurantId,
+      userId,
+    );
+  }
 }

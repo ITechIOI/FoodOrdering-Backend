@@ -513,6 +513,7 @@ type Query {
   findAllFavorites(page: Int, limit: Int): PaginatedFavoriteResponse!
   findFavoriteById(id: Int!): Favorite!
   findFavoritesByUserId(userId: Int!, page: Int! = 1, limit: Int! = 10): PaginatedFavoriteResponse!
+  findFavoriteByRestaurantId(restaurantId: Int!, userId: Int!): Favorite!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -522,6 +523,7 @@ type Mutation {
   createUser(createUserInput: CreateUserInput!): Users!
   uploadAvatar(id: Int!, file: Upload!): Users!
   updateUser(updateUserInput: UpdateUserInput!): Users!
+  linkUserAddress(userId: Int!, addressId: Int): Users!
   removeUser(id: Int!): Users!
   createRole(createRoleInput: CreateRoleInput!): Roles!
   uploadToCloudinary(file: Upload!): String!

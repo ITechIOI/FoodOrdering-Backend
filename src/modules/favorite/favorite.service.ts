@@ -145,4 +145,17 @@ export class FavoriteService {
     }
     return { data, total };
   }
+
+  async findFavoriteByRestaurantIdAndUserId(
+    restaurantId: number,
+    userId: number,
+  ): Promise<Favorite | null> {
+    return this.favoriteRepository
+      .createQueryBuilder('favorite')
+      .leftJoinAndSelect('favorite.restaurant', 'restaurant')
+      .where('favorite.restaurantId = :restaurantId', { restaurantId })
+      .andWhere('favorite.userId = :userId', { userId })
+      .andWhere('favorite.deletedAt IS NULL')
+      .getOne();
+  }
 }
