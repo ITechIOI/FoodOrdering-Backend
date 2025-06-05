@@ -38,7 +38,7 @@ export class Address extends AbstractEntity<Address> {
   longitude: number;
 
   @Field(() => String, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'varchar', length: 512 })
   placeId: string;
 
   @Field(() => [Restaurant], { nullable: true })
