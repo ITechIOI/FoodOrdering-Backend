@@ -23,7 +23,7 @@ export class ReviewResolver {
     return await this.reviewService.create(createReviewInput);
   }
 
-  @Query(() => PaginatedReviewResponse, { name: 'review' })
+  @Query(() => PaginatedReviewResponse, { name: 'reviews' })
   @UseGuards(AuthGuard)
   async findAll(
     @Args('page', { type: () => Int, nullable: true }) page = 1,
