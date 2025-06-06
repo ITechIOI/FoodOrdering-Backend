@@ -61,6 +61,13 @@ export class RestaurantResolver {
     return await this.restaurantService.findOneById(id, latitude, longitude);
   }
 
+  @Query(() => Restaurant)
+  async findByIdNotLocation(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<Restaurant> {
+    return await this.restaurantService.findOne(id);
+  }
+
   @Mutation(() => Restaurant)
   async updateRestaurant(
     @Args('updateRestaurantInput') updateRestaurantInput: UpdateRestaurantInput,
