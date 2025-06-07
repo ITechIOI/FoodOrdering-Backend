@@ -30,8 +30,8 @@ export class Order extends AbstractEntity<Order> {
   })
   status: string;
 
-  @Field(() => User, { nullable: true })
-  @ManyToOne(() => User, (user) => user.order)
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.order, { nullable: false, eager: true })
   user: User;
 
   @Field(() => Address, { nullable: true })

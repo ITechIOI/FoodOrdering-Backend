@@ -111,6 +111,7 @@ export class PaymentService {
     const payment = await this.paymentRepository
       .createQueryBuilder('payment')
       .leftJoinAndSelect('payment.order', 'order')
+      .leftJoinAndSelect('order.user', 'user')
       .where('payment.transactionId = :transactionId', { transactionId })
       .andWhere('payment.status = :status', { status: 'pending' })
       .andWhere('payment.deletedAt IS NULL')

@@ -60,6 +60,7 @@ export class NotificationService {
       );
     } else if (data.type === 'push') {
       // this.notificationStrategy = new PushService(this.configService);
+      console.log('User expo message token:', user.expoMessageToken);
       this.notificationStrategy = new PushService(
         this.pushRabbitClient,
         this.configService,

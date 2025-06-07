@@ -188,7 +188,7 @@ type Order {
   totalPrice: Int
   shippingFee: Int
   status: String
-  user: Users
+  user: Users!
   address: Address
   restaurant: Restaurant
   discount: Discount
