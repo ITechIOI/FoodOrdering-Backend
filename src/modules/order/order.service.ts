@@ -65,10 +65,12 @@ export class OrderService {
         );
       }
       order.discount = discount;
-      order.totalPrice = createOrderInput.shippingFee - discount.percentage;
+      order.totalPrice =
+        createOrderInput.shippingFee - discount.percentage + order.totalPrice;
       if (order.totalPrice < 0) order.totalPrice = 0;
     } else {
-      order.totalPrice = createOrderInput.shippingFee;
+      order.totalPrice =
+        createOrderInput.shippingFee + createOrderInput.totalPrice;
     }
 
     const newOrder = await this.orderRepository.save(order);
