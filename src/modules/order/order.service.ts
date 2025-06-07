@@ -66,7 +66,9 @@ export class OrderService {
       }
       order.discount = discount;
       order.totalPrice =
-        createOrderInput.shippingFee - discount.percentage + order.totalPrice;
+        createOrderInput.shippingFee -
+        discount.percentage * order.totalPrice +
+        order.totalPrice;
       if (order.totalPrice < 0) order.totalPrice = 0;
     } else {
       order.totalPrice =
