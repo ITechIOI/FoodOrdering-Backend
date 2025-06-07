@@ -22,4 +22,7 @@ export class CreateOrderInput {
 
   @Field(() => Int, { nullable: true })
   addressId: number;
+
+  @Field(() => String, { nullable: true, defaultValue: '' })
+  addressSpec: string;
 }

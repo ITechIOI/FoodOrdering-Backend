@@ -65,4 +65,8 @@ export class Order extends AbstractEntity<Order> {
   // @Field(() => [Notification], { nullable: true })
   // @OneToMany(() => Notification, (review) => review.order)
   // notification: Notification[];
+
+  @Field(() => String, { nullable: true, defaultValue: '' })
+  @Column({ nullable: true, type: 'varchar', length: 512 })
+  addressSpec: string;
 }

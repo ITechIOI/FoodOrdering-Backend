@@ -195,6 +195,7 @@ type Order {
   payment: [Payment!]
   review: [Review!]
   orderDetail: [OrderDetail!]
+  addressSpec: String
 }
 
 type Notification {
@@ -676,6 +677,7 @@ input CreateOrderInput {
   restaurantId: Int
   discountId: Int
   addressId: Int
+  addressSpec: String = ""
 }
 
 input UpdateOrderInput {
@@ -686,6 +688,7 @@ input UpdateOrderInput {
   restaurantId: Int
   discountId: Int
   addressId: Int
+  addressSpec: String = ""
   id: Int!
 }
 
