@@ -40,15 +40,25 @@ export class OrderDetailsService {
 
     // Cập nhật tồn kho của món ăn
     menu.quantity = menu.quantity - createOrderDetailInput.quantity;
-    const updateMenuDto = UpdateMenuInput.fromEntity(menu);
+    const updateMenuDto = {
+      id: menu.id,
+      quantity: menu.quantity,
+    };
+
     await this.menuService.update(menu.id, updateMenuDto);
 
     // Cập nhật tổng tiền của đơn hàng
     order.totalPrice =
       order.totalPrice + menu.price * createOrderDetailInput.quantity;
-    const updateOrderDto = UpdateOrderInput.fromEntity(order);
-    await this.orderService.update(order.id, updateOrderDto);
-
+    const updateOrderDto = {
+      id: order.id,
+      totalPrice: order.totalPrice,
+    };
+    const updatedOrder = await this.orderService.update(
+      order.id,
+      updateOrderDto,
+    );
+    console.log('updateMenuDto', updatedOrder);
     return result;
   }
 
