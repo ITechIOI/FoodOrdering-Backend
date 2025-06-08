@@ -120,6 +120,7 @@ export class ReviewService {
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.order', 'order')
       .leftJoinAndSelect('order.restaurant', 'restaurant')
+      .leftJoinAndSelect('order.user', 'user')
       .where('restaurant.id = :restaurantId', { restaurantId })
       .andWhere('review.deletedAt IS NULL');
     const [data, total] = await queryBuilder
