@@ -115,6 +115,10 @@ export class OrderService {
     const [data, total] = await this.orderRepository
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.payment', 'payment')
+      .leftJoinAndSelect('order.restaurant', 'restaurant')
+      .leftJoinAndSelect('order.address', 'address')
+      .leftJoinAndSelect('order.review', 'review')
+      .leftJoinAndSelect('order.orderDetail', 'orderDetail')
       .where('order.deletedAt is null')
       .andWhere('order.user.id = :userId', { userId })
       // chỉ lấy những đơn hàng đã thanh toán thành công
