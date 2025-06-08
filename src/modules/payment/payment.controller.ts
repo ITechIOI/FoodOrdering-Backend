@@ -65,8 +65,8 @@ export class PaymentController {
 
     const notification: CreateNotificationInput = {
       userId: payment.order.user.id,
-      title: 'Payment Successful',
-      content: `Your payment for order #${payment.order.id} has been successfully completed.`,
+      title: 'Thanh toán thành công',
+      content: `Thanh toán cho đơn hàng #${payment.order.id} của bạn đã được hoàn tất.`,
       type: 'push',
       isRead: 'unread',
     };
@@ -78,6 +78,11 @@ export class PaymentController {
     // return res.sendFile(
     //   join(process.cwd(), 'src/modules/payment/templates/payment_success.html'),
     // );
+    return res.status(200).json({
+      success: true,
+      message: 'Payment processed successfully',
+      orderId: payment.order.id,
+    });
   }
 
   // @Get('test')
@@ -97,12 +102,18 @@ export class PaymentController {
     // );
     const notification: CreateNotificationInput = {
       userId: payment.order.user.id,
-      title: 'Payment Cancelled',
-      content: `Your payment for order #${payment.order.id} has been cancelled.`,
+      title: 'Thanh toán bị hủy',
+      content: `Thanh toán cho đơn hàng #${payment.order.id} của bạn đã bị hủy.`,
       type: 'push',
       isRead: 'unread',
     };
 
     await this.notificationService.create(notification);
+
+    return res.status(200).json({
+      success: false,
+      message: 'Payment canceled',
+      orderId: payment.order.id,
+    });
   }
 }
