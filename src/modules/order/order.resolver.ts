@@ -120,4 +120,17 @@ export class OrderResolver {
       year,
     );
   }
+
+  @Query(() => PaginatedOrder) // Chỉ cho phép người dùng có vai trò manager hoặc admin
+  async findAllPaidOrdersByUserId(
+    @Args('userId', { type: () => Int }) userId: number,
+    @Args('page', { type: () => Int, nullable: true }) page?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+  ) {
+    return await this.orderService.findAllPaidOrdersByUserId(
+      userId,
+      page,
+      limit,
+    );
+  }
 }

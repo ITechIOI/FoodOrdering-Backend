@@ -107,6 +107,27 @@ export class OrderService {
     return { total, data };
   }
 
+  async findAllPaidOrdersByUserId(
+    userId: number,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ total: number; data: Order[] }> {
+    const [data, total] = await this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.payment', 'payment')
+      .where('order.deletedAt is null')
+      .andWhere('order.user.id = :userId', { userId })
+      // chỉ lấy những đơn hàng đã thanh toán thành công
+      .andWhere('payment.status = :status', { status: 'completed' })
+      .take(limit)
+      .skip((page - 1) * limit)
+      .getManyAndCount();
+    if (data.length === 0) {
+      throw new NotFoundException(`Order not found`);
+    }
+    return { total, data };
+  }
+
   async findOne(id: number): Promise<Order> {
     // console.log('order of orderService id');
     const order = await this.orderRepository

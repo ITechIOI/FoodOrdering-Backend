@@ -476,6 +476,7 @@ type Query {
   getTotalOrderByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
   getTotalRevenueByRestaurantId(restaurantId: Int!, year: Int!, month: Int): Int!
   getTotalRevenueByRestaurantIdByYear(restaurantId: Int!, year: Int!): [RevenueByYear!]!
+  findAllPaidOrdersByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
   findAllDiscounts(page: Int, limit: Int): PaginatedDiscount!
   findDiscountById(id: Int!): Discount!
   findDiscountByCode(code: String!): Discount!
