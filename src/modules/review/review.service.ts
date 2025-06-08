@@ -110,6 +110,25 @@ export class ReviewService {
     }
 
     return { data, total };
+  }
+  async findReviewsByRestaurantId(
+    restaurantId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<Review>> {
+    const queryBuilder = this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.order', 'order')
+      .leftJoinAndSelect('order.restaurant', 'restaurant')
+      .leftJoinAndSelect('order.user', 'user')
+      .where('restaurant.id = :restaurantId', { restaurantId })
+      .andWhere('review.deletedAt IS NULL');
+    const [data, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('review.createdAt', 'DESC') // Luôn sắp xếp khi phân trang
+      .getManyAndCount();
 
+    return { data, total };
   }
 }

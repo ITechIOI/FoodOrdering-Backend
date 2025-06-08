@@ -75,4 +75,17 @@ export class ReviewResolver {
   ): Promise<PaginatedResponse<Review>> {
     return this.reviewService.findReviewsByOrderId(orderId, page, limit);
   }
+
+  @Query(() => PaginatedReviewResponse)
+  async findReviewsByRestaurantId(
+    @Args('restaurantId', { type: () => Int }) restaurantId: number,
+    @Args('page', { type: () => Int, nullable: true }) page = 1,
+    @Args('limit', { type: () => Int, nullable: true }) limit = 10,
+  ): Promise<PaginatedResponse<Review>> {
+    return this.reviewService.findReviewsByRestaurantId(
+      restaurantId,
+      page,
+      limit,
+    );
+  }
 }
