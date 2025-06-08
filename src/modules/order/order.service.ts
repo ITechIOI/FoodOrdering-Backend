@@ -119,6 +119,7 @@ export class OrderService {
       .leftJoinAndSelect('order.address', 'address')
       .leftJoinAndSelect('order.review', 'review')
       .leftJoinAndSelect('order.orderDetail', 'orderDetail')
+      .leftJoinAndSelect('orderDetail.menu', 'menu')
       .where('order.deletedAt is null')
       .andWhere('order.user.id = :userId', { userId })
       // chỉ lấy những đơn hàng đã thanh toán thành công

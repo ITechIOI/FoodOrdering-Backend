@@ -469,6 +469,7 @@ type Query {
   findOneReviewById(id: Int!): Review!
   findReviewByOrderIdAndUserId(orderId: Int!, userId: Int!): Review!
   findReviewsByOrderId(orderId: Int!, page: Int, limit: Int): PaginatedReviewResponse!
+  findReviewsByRestaurantId(restaurantId: Int!, page: Int, limit: Int): PaginatedReviewResponse!
   findAllOrders(page: Int, limit: Int): PaginatedOrder!
   findOrderById(id: Int!): Order!
   findOrderByUserId(userId: Int!, page: Int, limit: Int): PaginatedOrder!
