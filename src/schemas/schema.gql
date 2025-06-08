@@ -459,6 +459,7 @@ type PaginatedFavoriteResponse {
 type Query {
   sayHello: String!
   findAllUsers(page: Int, limit: Int): PaginatedUser!
+  totalUsers: Int!
   findUserById(id: Int!): Users!
   findAllRole: [Roles!]!
   findOne(id: Int!): Roles!

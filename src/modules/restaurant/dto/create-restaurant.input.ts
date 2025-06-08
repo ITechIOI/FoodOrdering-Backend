@@ -21,7 +21,7 @@ export class CreateRestaurantInput {
   closeTime: string;
 
   @Field(() => String, { nullable: true })
-  status?: 'open' | 'close';
+  status?: 'open' | 'close' | 'pending' | 'rejected';
 
   @Field(() => Number)
   addressId: number;

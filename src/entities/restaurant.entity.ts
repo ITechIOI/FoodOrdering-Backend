@@ -43,7 +43,7 @@ export class Restaurant extends AbstractEntity<Restaurant> {
   @Field(() => String, { nullable: true })
   @Column({
     type: 'enum',
-    enum: ['open', 'close'],
+    enum: ['open', 'close', 'pending', 'rejected'],
     default: 'close',
   })
   status: string;

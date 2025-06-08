@@ -32,6 +32,10 @@ export class UsersService {
     private readonly cacheService: CacheService,
   ) {}
 
+  async getTotalUsers(): Promise<number> {
+    const total = await this.userRepository.count();
+    return total;
+  }
   async create(createUserInput: CreateUserInput): Promise<User> {
     try {
       const role = await this.roleService.findOne(createUserInput.roleId);

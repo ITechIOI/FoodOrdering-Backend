@@ -87,7 +87,10 @@ export class UsersResolver {
     console.log('Querying all users');
     return this.usersService.findAllUser(page, limit);
   }
-
+  @Query(() => Int, { name: 'totalUsers' })
+  async getTotalUsers(): Promise<number> {
+    return this.usersService.getTotalUsers();
+  }
   @Query(() => User)
   @UseGuards(AuthGuard)
   async findUserById(@Args('id', { type: () => Int }) id: number) {
