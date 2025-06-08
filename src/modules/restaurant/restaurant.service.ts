@@ -65,7 +65,7 @@ export class RestaurantService {
   async findOne(id: number): Promise<Restaurant> {
     const restaurant = await this.restaurantRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['address', 'owner'],
+      relations: ['address', 'owner', 'categories', 'categories.menu'],
     });
 
     if (!restaurant)
