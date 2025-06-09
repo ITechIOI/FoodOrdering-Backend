@@ -84,6 +84,7 @@ export class PaymentService {
     const newPayment = this.paymentRepository.create({
       transactionId: response.data.id,
       ...createPaymentDto,
+      status: 'completed',
       order,
     });
 
