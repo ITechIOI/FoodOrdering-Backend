@@ -69,6 +69,7 @@ export class MenuService {
     const menu = await this.menuRepository
       .createQueryBuilder('menu')
       .leftJoinAndSelect('menu.category', 'category')
+      .leftJoinAndSelect('category.restaurant', 'restaurant')
       .where('menu.deletedAt IS NULL')
       .getMany();
     if (!menu) {
@@ -83,6 +84,22 @@ export class MenuService {
       where: { id, deletedAt: IsNull() },
       relations: ['category', 'orderDetail'],
     });
+
+    if (!menu) {
+      throw new NotFoundException(`Menu with ID ${id} not found`);
+    }
+
+    return menu;
+  }
+
+  async findOneById(id: number): Promise<Menu> {
+    const menu = await this.menuRepository
+      .createQueryBuilder('menu')
+      .leftJoinAndSelect('menu.category', 'category')
+      .leftJoinAndSelect('category.restaurant', 'restaurant')
+      .where('menu.id = :id', { id })
+      .andWhere('menu.deletedAt IS NULL')
+      .getOne();
 
     if (!menu) {
       throw new NotFoundException(`Menu with ID ${id} not found`);
@@ -272,8 +289,7 @@ export class MenuService {
 
       let menu: Menu[] = [];
       for (let i = 0; i < response.data.length; i++) {
-        const menuItem = await this.findOne(response.data[i].id);
-        // console.log('menuItem', menuItem);
+        const menuItem = await this.findOneById(response.data[i].id);
         menu.push(menuItem);
       }
       return menu;
